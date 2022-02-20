@@ -1,0 +1,19 @@
+{
+  "name": "battleshipsjs",
+  "version": "1.0.0",
+  "description": "CLI Battleships Game",
+  "main": "index.js",
+  "scripts": {
+    "start": "ts-node-dev --respawn --transpile-only --exit-child --debug src/index.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CamGarvey/BattleshipsJS.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/CamGarvey/BattleshipsJS/issues"
+  },
+  "homepage": "https://github.com/CamGarvey/BattleshipsJS#readme"
+}
