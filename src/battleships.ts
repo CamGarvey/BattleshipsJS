@@ -37,7 +37,7 @@ export class Battleships {
     if (lengthOfShips > matrixShape[0] && lengthOfShips > matrixShape[1]) {
       throw new BattleShipsError('Ships too big');
     }
-    this.display = display || new ConsoleDisplay(this.matrixShape);
+    this.display = display || new ConsoleDisplay();
     this.state = BattleShipsState.Idle;
     this.ships = [];
     this.targets = [];
@@ -201,7 +201,10 @@ export class Battleships {
     let count = 0;
     while (this.state == BattleShipsState.Playing) {
       // Get Target
-      const target = await this.display.promptTarget(this.targets);
+      const target = await this.display.promptTarget(
+        this.matrixShape,
+        this.targets
+      );
       // Add new target to previous targets
       this.targets.push(target);
       // Shoot at target
@@ -231,6 +234,7 @@ export class Battleships {
 
   private draw(drawShips: boolean) {
     this.display.displayBattlefield(
+      this.matrixShape,
       this.targets,
       this.allShipVectors(),
       drawShips
