@@ -139,7 +139,7 @@ export class ConsoleDisplay extends Display {
   }
 
   public displayTitle(): void {
-    console.log('BattleshipsJS');
+    console.log(chalk.cyanBright('BattleshipsJS\n'));
   }
 
   public displayRemaining(
