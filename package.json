@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "CLI Battleships Game",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "start": "ts-node-dev --respawn --transpile-only --exit-child --debug src/index.ts"
   },
@@ -15,5 +16,13 @@
   "bugs": {
     "url": "https://github.com/CamGarvey/BattleshipsJS/issues"
   },
-  "homepage": "https://github.com/CamGarvey/BattleshipsJS#readme"
+  "homepage": "https://github.com/CamGarvey/BattleshipsJS#readme",
+  "dependencies": {
+    "@types/inquirer": "^8.2.0",
+    "chalk": "^4.1.2",
+    "inquirer": "^8.2.0"
+  },
+  "devDependencies": {
+    "ts-node-dev": "^1.1.8"
+  }
 }
