@@ -13,7 +13,7 @@ interface IShip {
 export class Ship implements IShip {
   // lol private parts
   private _parts: ShipPart[];
-  private _sunk: boolean;
+  private _sunk: boolean = false;
 
   constructor(private vectors: Vector[], private sinkInOneHit: boolean) {
     this._parts = vectors.map((x) => new ShipPart(x));

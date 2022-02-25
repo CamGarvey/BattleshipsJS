@@ -1,3 +1,1 @@
-export class Vector {
-  [n: number]: number;
-}
+export type Vector = [number, number];
