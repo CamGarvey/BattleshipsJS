@@ -4,41 +4,45 @@ import { allPositionsInMatrixShape, randomChoice } from './util';
 import { GameMode } from './models/game-mode';
 import { ConsoleDisplay, IDisplay } from './display';
 import { Vector } from './types';
-
-enum BattleShipsState {
-  Exit,
-  Idle,
-  Playing,
-  Lost,
-  Won,
-}
-
-class BattleShipsError extends Error {}
+import { BattleshipsState } from './models/battleship-state';
+import { BattleshipsOptions } from './models/battleships-options';
+import { BattleshipsError } from './models/errors';
 
 export class Battleships {
-  private state: BattleShipsState;
+  private state: BattleshipsState;
   private ships: Ship[];
   private targets: Vector[];
   private positionsInMatrix: Vector[];
   private gameMode: GameMode;
   private display: IDisplay;
 
+  private matrixShape: Vector;
+  private lengthOfShips: number;
+  private numberOfShips: number;
+  private numberOfTurns: number;
+
   constructor(
-    private matrixShape: Vector,
-    private numberOfShips: number,
-    private lengthOfShips: number,
-    private sinkInOneHit = true,
-    private numberOfTurns = 20,
+    {
+      matrixShape,
+      lengthOfShips,
+      numberOfShips,
+      numberOfTurns = 5,
+    }: BattleshipsOptions,
     display: IDisplay = null
   ) {
     if (lengthOfShips <= 0) {
-      throw new BattleShipsError('Ship must be at least 1 in length');
+      throw new BattleshipsError('Ship must be at least 1 in length');
     }
     if (lengthOfShips > matrixShape[0] && lengthOfShips > matrixShape[1]) {
-      throw new BattleShipsError('Ships too big');
+      throw new BattleshipsError('Ships too big');
     }
-    this.display = display || new ConsoleDisplay();
-    this.state = BattleShipsState.Idle;
+    this.matrixShape = matrixShape;
+    this.lengthOfShips = lengthOfShips;
+    this.numberOfShips = numberOfShips;
+    this.numberOfTurns = numberOfTurns;
+
+    this.display = display;
+    this.state = BattleshipsState.Idle;
     this.ships = [];
     this.targets = [];
     this.positionsInMatrix = allPositionsInMatrixShape(matrixShape);
@@ -67,7 +71,10 @@ export class Battleships {
     ) {
       const head = this.pickShipHead(takenSpots);
       if (this.lengthOfShips == 1) {
-        return new Ship([head], this.sinkInOneHit);
+        return new Ship({
+          vectors: [head],
+          sinkInOneHit: this.gameMode == GameMode.Easy,
+        });
       }
       const potentialBodies: Vector[][] = this.findNeighbours(
         head,
@@ -80,14 +87,15 @@ export class Battleships {
           takenSpots.find((x) => x[0] == vector[0] && x[1] == vector[1])
         );
       });
+
       if (validBodies.length != 0)
-        return new Ship(
-          [head, ...randomChoice(validBodies)],
-          this.sinkInOneHit
-        );
+        return new Ship({
+          vectors: [head, ...randomChoice(validBodies)],
+          sinkInOneHit: this.gameMode == GameMode.Easy,
+        });
       tries = tries + 1;
     }
-    throw new BattleShipsError('Failed to create ship - no room');
+    throw new BattleshipsError('Failed to create ship - no room');
   }
 
   /**
@@ -152,7 +160,7 @@ export class Battleships {
       return !takenSpots.find((x) => x[0] == vec[0] && x[1] == vec[1]);
     });
     if (availablePositions.length == 0) {
-      throw new BattleShipsError('Too many ships');
+      throw new BattleshipsError('Too many ships');
     }
     return randomChoice(availablePositions);
   }
@@ -199,7 +207,7 @@ export class Battleships {
 
   private async playLoop(debug = false) {
     let count = 0;
-    while (this.state == BattleShipsState.Playing) {
+    while (this.state == BattleshipsState.Playing) {
       // Get Target
       const target = await this.display.promptTarget(
         this.matrixShape,
@@ -221,8 +229,8 @@ export class Battleships {
 
       // print(f'{self._number_of_turns - count}/{self._number_of_turns} turns remaining')
 
-      if (count == this.numberOfTurns) this.state = BattleShipsState.Lost;
-      if (this.hasWon()) this.state = BattleShipsState.Won;
+      if (count == this.numberOfTurns) this.state = BattleshipsState.Lost;
+      if (this.hasWon()) this.state = BattleshipsState.Won;
     }
   }
 
@@ -236,15 +244,15 @@ export class Battleships {
     this.display.displayBattlefield(
       this.matrixShape,
       this.targets,
-      this.allShipVectors(),
+      this.ships,
       drawShips
     );
   }
 
   public async run(debug = false) {
     this.display.displayTitle();
-    this.state = BattleShipsState.Playing;
-    while (this.state != BattleShipsState.Exit) {
+    this.state = BattleshipsState.Playing;
+    while (this.state != BattleshipsState.Exit) {
       this.gameMode = await this.display.promptGameMode();
       this.resetBattlefield();
       this.draw(debug);
@@ -252,10 +260,10 @@ export class Battleships {
       // Draw final battlefield to console
       this.draw(true);
       // Display if won or lose
-      this.display.displayResult(this.state == BattleShipsState.Won);
+      this.display.displayResult(this.state == BattleshipsState.Won);
       const playAgain = await this.display.promptPlayAgain();
       if (!playAgain) {
-        this.state = BattleShipsState.Exit;
+        this.state = BattleshipsState.Exit;
       }
     }
   }

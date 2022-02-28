@@ -11,12 +11,20 @@ interface IShip {
 }
 
 export class Ship implements IShip {
+  private sinkInOneHit: boolean;
   // lol private parts
   private _parts: ShipPart[];
-  private _sunk: boolean = false;
+  private _sunk: boolean;
 
-  constructor(private vectors: Vector[], private sinkInOneHit: boolean) {
+  constructor({
+    vectors,
+    sinkInOneHit = true,
+  }: {
+    vectors: Vector[];
+    sinkInOneHit: boolean;
+  }) {
     this._parts = vectors.map((x) => new ShipPart(x));
+    this.sinkInOneHit = sinkInOneHit;
   }
 
   public get sunk(): boolean {
@@ -52,6 +60,7 @@ export class Ship implements IShip {
           this._sunk = true;
         }
         closest = distance;
+        return;
       }
       if (closest == undefined || distance < closest) closest = distance;
     });

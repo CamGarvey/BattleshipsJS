@@ -1,7 +1,15 @@
 import { Battleships } from './battleships';
+import { ConsoleDisplay, ConsoleResolution } from './display';
 
-const battleships = new Battleships([8, 8], 6, 2);
+const battleships = new Battleships(
+  {
+    matrixShape: [5, 5],
+    numberOfShips: 2,
+    lengthOfShips: 2,
+  },
+  new ConsoleDisplay({ resolution: ConsoleResolution.Medium, gaps: false })
+);
 
 (async () => {
-  battleships.run(true);
+  battleships.run();
 })();
