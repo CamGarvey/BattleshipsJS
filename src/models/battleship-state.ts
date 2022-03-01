@@ -4,4 +4,6 @@ export enum BattleshipsState {
   Playing,
   Lost,
   Won,
+  PlayersTurn,
+  AIsTurn,
 }

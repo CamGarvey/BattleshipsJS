@@ -1,6 +1,6 @@
 import { Ship } from './models/ship';
 import { ShootResponse } from './models/shoot-response';
-import { allPositionsInMatrixShape, randomChoice } from './util';
+import { MatrixHelper, randomChoice } from './util';
 import { GameMode } from './models/game-mode';
 import { ConsoleDisplay, IDisplay } from './display';
 import { Vector } from './types';
@@ -10,8 +10,9 @@ import { BattleshipsError } from './models/errors';
 
 export class Battleships {
   private state: BattleshipsState;
-  private ships: Ship[];
-  private targets: Vector[];
+
+  private playerManager: IPlayerManager;
+
   private positionsInMatrix: Vector[];
   private gameMode: GameMode;
   private display: IDisplay;
@@ -43,134 +44,9 @@ export class Battleships {
 
     this.display = display;
     this.state = BattleshipsState.Idle;
-    this.ships = [];
-    this.targets = [];
-    this.positionsInMatrix = allPositionsInMatrixShape(matrixShape);
-  }
 
-  private createShips() {
-    for (let _ = 0; _ < this.numberOfShips; _++) {
-      const ship = this.createShip();
-      this.ships.push(ship);
-    }
-  }
-
-  /**
-   * Finds free place for a new ship and creates a new one at that position
-   * @param takenSpots
-   * @param length
-   * @param sinkInOneHit
-   * @returns
-   */
-  private createShip() {
-    let tries = 0;
-    const takenSpots = this.allShipVectors();
-    while (
-      tries <
-      this.matrixShape[0] * this.matrixShape[1] - takenSpots.length
-    ) {
-      const head = this.pickShipHead(takenSpots);
-      if (this.lengthOfShips == 1) {
-        return new Ship({
-          vectors: [head],
-          sinkInOneHit: this.gameMode == GameMode.Easy,
-        });
-      }
-      const potentialBodies: Vector[][] = this.findNeighbours(
-        head,
-        this.lengthOfShips - 1
-      );
-      // filter out bodies that have positions taken
-      const validBodies = potentialBodies.filter((body) => {
-        // make sure that bodies are not in take positions
-        return !body.find((vector) =>
-          takenSpots.find((x) => x[0] == vector[0] && x[1] == vector[1])
-        );
-      });
-
-      if (validBodies.length != 0)
-        return new Ship({
-          vectors: [head, ...randomChoice(validBodies)],
-          sinkInOneHit: this.gameMode == GameMode.Easy,
-        });
-      tries = tries + 1;
-    }
-    throw new BattleshipsError('Failed to create ship - no room');
-  }
-
-  /**
-   * Finds the neighbours of the given position
-   * @param vector
-   * @param size
-   * @returns
-   */
-  private findNeighbours(vector: Vector, size = 1): Vector[][] {
-    const col = vector[0];
-    const row = vector[1];
-
-    let top: Vector[] = [];
-    let bottom: Vector[] = [];
-    let left: Vector[] = [];
-    let right: Vector[] = [];
-
-    // Find top neighbours
-    if (row - size >= 0) {
-      for (let index = row - size; index < row; index++) {
-        top.push([col, index]);
-      }
-    } else {
-      top = [];
-    }
-    // Find bottom neighbours
-    if (row + size < this.matrixShape[1]) {
-      for (let index = 1; index < size + 1; index++) {
-        bottom.push([col, row + index]);
-      }
-    } else {
-      bottom = [];
-    }
-
-    // Find left neighbours
-    if (col - size >= 0) {
-      for (let index = col - size; index < col; index++) {
-        left.push([index, row]);
-      }
-    } else {
-      left = [];
-    }
-
-    // Find right neighbours
-    if (col + size < this.matrixShape[0]) {
-      for (let index = 1; index < size + 1; index++) {
-        right.push([col + index, row]);
-      }
-    } else {
-      right = [];
-    }
-    // filter out empty arrays and return list
-    return [top, bottom, left, right].filter((x) => x.length !== 0);
-  }
-
-  /**
-   * Picks a pos in the in battlefield that is not in the taken spots list
-   * @param takenSpots
-   */
-  private pickShipHead(takenSpots: Vector[] = []): Vector {
-    const availablePositions = this.positionsInMatrix.filter((vec) => {
-      return !takenSpots.find((x) => x[0] == vec[0] && x[1] == vec[1]);
-    });
-    if (availablePositions.length == 0) {
-      throw new BattleshipsError('Too many ships');
-    }
-    return randomChoice(availablePositions);
-  }
-
-  private allShipVectors(): Vector[] {
-    return this.ships.map((ship) => ship.allVectors()).flat();
-  }
-
-  private aliveShips() {
-    return this.ships.filter((ship) => !ship.sunk);
+    this.positionsInMatrix =
+      MatrixHelper.allPositionsInMatrixShape(matrixShape);
   }
 
   /**
@@ -235,18 +111,16 @@ export class Battleships {
   }
 
   private resetBattlefield() {
-    this.targets = [];
-    this.ships = [];
-    this.createShips();
+    // this.createShips();
   }
 
   private draw(drawShips: boolean) {
-    this.display.displayBattlefield(
-      this.matrixShape,
-      this.targets,
-      this.ships,
-      drawShips
-    );
+    // this.display.displayBattlefield(
+    //   this.matrixShape,
+    //   // this.targets,
+    //   // this.ships,
+    //   drawShips
+    // );
   }
 
   public async run(debug = false) {
