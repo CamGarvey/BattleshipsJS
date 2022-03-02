@@ -1,21 +1,21 @@
 import * as chalk from 'chalk';
 import * as inquirer from 'inquirer';
+import { Battlefield, IBattlefield } from './models/battlefield';
 import { GameMode } from './models/game-mode';
 import { Ship } from './models/ship';
 import { ShootMessage } from './models/shoot-message';
 import { Vector } from './types';
-import { isOutOfBounds } from './util';
+import { MatrixHelper } from './util';
+
 export interface IDisplay {
-  displayBattlefield: (
-    matrixShape: Vector,
-    targets: Vector[],
-    ships: Ship[],
-    drawShips: boolean
-  ) => void;
+  displayBattlefield: (Battlefield: IBattlefield, drawShips: boolean) => void;
   displayTitle: () => void;
   promptPlayAgain: () => Promise<boolean>;
   promptGameMode: () => Promise<GameMode>;
-  promptTarget: (matrixShape: Vector, targets: Vector[]) => Promise<Vector>;
+  promptCoordinates: (
+    matrixShape: Vector,
+    previousCoordinates: Vector[]
+  ) => Promise<Vector>;
   displayShootMessage: (message: ShootMessage) => void;
   displayResult: (hasWon: boolean) => void;
   displayRemaining: (
@@ -23,14 +23,15 @@ export interface IDisplay {
     turnsHad: number,
     turnsAllowed: number
   ) => void;
+  displayMessage(message: string): void;
 }
 
 abstract class Display implements IDisplay {
   public abstract promptPlayAgain(): Promise<boolean>;
   public abstract promptGameMode(): Promise<GameMode>;
-  public abstract promptTarget(
+  public abstract promptCoordinates(
     matrixShape: Vector,
-    vector: Vector[]
+    previousCoordinates: Vector[]
   ): Promise<Vector>;
 
   protected abstract createHitShip(): any;
@@ -46,30 +47,36 @@ abstract class Display implements IDisplay {
   protected alphabet = 'abcdefghijklmnopqrstuvwxyz';
 
   public displayBattlefield(
-    matrixShape: Vector,
-    targets: Vector[],
-    ships: Ship[],
+    battlefield: IBattlefield,
     drawUnHitShips: boolean
   ): void {
-    const allShipParts = ships.map((ship) => ship.parts).flat();
+    const allShipParts = battlefield.ships.map((ship) => ship.parts).flat();
     const rows: any[][] = [];
-    for (let col = 0; col < matrixShape[1]; col++) {
+    for (let col = 0; col < battlefield.matrixShape[1]; col++) {
       let rowToDraw: any[] = [];
-      for (let row = 0; row < matrixShape[0]; row++) {
+      for (let row = 0; row < battlefield.matrixShape[0]; row++) {
         const pos: Vector = [row, col];
         if (
           allShipParts.find(
             (x) => x.vector[0] == pos[0] && x.vector[1] == pos[1]
           )
         ) {
-          if (targets.find((x) => x[0] == pos[0] && x[1] == pos[1])) {
+          if (
+            battlefield.enemyCoordinates.find(
+              (x) => x[0] == pos[0] && x[1] == pos[1]
+            )
+          ) {
             rowToDraw.push(this.createHitShip());
             continue;
           }
           if (drawUnHitShips) rowToDraw.push(this.createShip());
           else rowToDraw.push(this.createOcean());
         } else {
-          if (targets.find((x) => x[0] == pos[0] && x[1] == pos[1]))
+          if (
+            battlefield.enemyCoordinates.find(
+              (x) => x[0] == pos[0] && x[1] == pos[1]
+            )
+          )
             rowToDraw.push(this.createHitOcean());
           else rowToDraw.push(this.createOcean());
         }
@@ -86,6 +93,7 @@ abstract class Display implements IDisplay {
     turnsHad: number,
     turnsAllowed: number
   ): void;
+  public abstract displayMessage(message: string): void;
 }
 
 export enum ConsoleResolution {
@@ -100,13 +108,15 @@ export class ConsoleDisplay extends Display {
   private resolution: ConsoleResolution;
   private gaps: boolean;
 
-  constructor({
-    resolution = ConsoleResolution.Medium,
-    gaps = false,
-  }: {
-    resolution?: ConsoleResolution;
-    gaps?: boolean;
-  }) {
+  constructor(
+    {
+      resolution,
+      gaps,
+    }: {
+      resolution?: ConsoleResolution;
+      gaps?: boolean;
+    } = { resolution: ConsoleResolution.Medium, gaps: false }
+  ) {
     super();
     this.resolution = resolution;
     this.gaps = gaps;
@@ -222,14 +232,14 @@ export class ConsoleDisplay extends Display {
   /**
    * Prompt user for the target they wish to shoot
    */
-  public async promptTarget(
+  public async promptCoordinates(
     matrixShape: Vector,
-    targets: Vector[]
+    previousCoordinates: Vector[]
   ): Promise<Vector> {
     const response = await inquirer.prompt([
       {
         type: 'input',
-        name: 'target',
+        name: 'coordinates',
         message: 'SHOOT! (x,y) ',
         validate: async (value: string) => {
           value = value.trim();
@@ -241,10 +251,12 @@ export class ConsoleDisplay extends Display {
           vector[1] = parseInt(split[1]);
           console.log(vector);
 
-          if (isOutOfBounds(matrixShape, vector)) return 'Out of bounds!';
+          if (MatrixHelper.isOutOfBounds(matrixShape, vector))
+            return 'Out of bounds!';
           if (
-            targets.find(
-              (target) => target[0] == vector[0] && target[1] == vector[1]
+            previousCoordinates.find(
+              (coordinate) =>
+                coordinate[0] == vector[0] && coordinate[1] == vector[1]
             )
           )
             return 'Already shot there!';
@@ -252,11 +264,15 @@ export class ConsoleDisplay extends Display {
         },
       },
     ]);
-    const split = response.target.split(',');
+    const split = response.coordinates.split(',');
     let vector: Vector = [0, 0];
     vector[0] = this.alphabet.indexOf(split[0]);
     vector[1] = parseInt(split[1]);
     return vector as Vector;
+  }
+
+  public displayMessage(message: string): void {
+    console.log(message);
   }
 
   public displayShootMessage(message: ShootMessage): void {

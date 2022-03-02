@@ -1,7 +1,9 @@
 import { Vector } from './types';
 
-export function randomChoice<T>(array: T[]): T {
-  return array[Math.floor(Math.random() * array.length)];
+export class Marray {
+  public static randomChoice<T>(array: T[]): T {
+    return array[Math.floor(Math.random() * array.length)];
+  }
 }
 
 export class MatrixHelper {

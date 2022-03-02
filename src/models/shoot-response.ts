@@ -1,10 +1,11 @@
-import { Ship } from './ship';
+import { IPlayer } from './player';
+import { IShip, Ship } from './ship';
 import { ShootMessage } from './shoot-message';
 
 export class ShootResponse {
   distance: number;
 
-  constructor(distance: number, private ship: Ship) {
+  constructor(distance: number, private ship: IShip) {
     this.distance = Math.abs(distance);
   }
 

@@ -5,7 +5,9 @@ class ShipPart {
   constructor(public vector: Vector) {}
 }
 
-interface IShip {
+export interface IShip {
+  sunk: boolean;
+  parts: ShipPart[];
   checkHit: (vector: Vector) => number;
   allVectors: () => Vector[];
 }

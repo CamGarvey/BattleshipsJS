@@ -1,88 +1,60 @@
-interface IPlayer {
+import { IDisplay } from '../display';
+import { Vector } from '../types';
+import { Marray, MatrixHelper } from '../util';
+import { Battlefield, IBattlefield } from './battlefield';
+import { BattleshipsError } from './errors';
+import { Ship } from './ship';
+import { ShootResponse } from './shoot-response';
+
+export interface IPlayer {
   id: string;
+  dead: boolean;
+  battlefield: IBattlefield;
+  promptCoordinates(matrixShape: Vector): Promise<Vector>;
+  handleTargetedResponse(response: ShootResponse): void;
+  handleShooterResponse(response: ShootResponse): void;
+  displayMessage(message: string): void;
+  displayBattlefield(battlefield?: IBattlefield): void;
 }
 
-class Player implements IPlayer {
+interface PlayerOptions {
   id: string;
-  private numberOfShips: number;
+  numberOfShips?: number;
+  display: IDisplay;
+  battlefield: IBattlefield;
+}
 
-  private ships: Ship[];
-  private targets: Vector[];
+export class Player implements IPlayer {
+  id: string;
+  dead: boolean;
+  private previousCoordinates: Vector[];
+  public battlefield: IBattlefield;
+  private display: IDisplay;
 
-  constructor({ numberOfShips = 2 }: { numberOfShips: number }) {
-    this.numberOfShips = numberOfShips;
+  constructor({ id, battlefield, display }: PlayerOptions) {
+    this.id = id;
+    this.battlefield = battlefield;
+    this.display = display;
   }
 
-  public allShipVectors(): Vector[] {
-    return this.ships.map((ship) => ship.allVectors()).flat();
+  promptCoordinates(matrixShape: Vector) {
+    return this.display.promptCoordinates(
+      matrixShape,
+      this.previousCoordinates
+    );
   }
 
-  public remainingShips() {
-    return this.ships.filter((ship) => !ship.sunk);
+  public handleTargetedResponse(response: ShootResponse): void {}
+
+  public handleShooterResponse(response: ShootResponse): void {}
+
+  public displayMessage(message: string): void {
+    this.display.displayMessage(message);
   }
 
-  private createShips() {
-    for (let _ = 0; _ < this.numberOfShips; _++) {
-      const ship = this.createShip();
-      this.ships.push(ship);
-    }
-  }
-
-  /**
-   * Finds free place for a new ship and creates a new one at that position
-   * @param takenSpots
-   * @param length
-   * @param sinkInOneHit
-   * @returns
-   */
-  private createShip() {
-    let tries = 0;
-    const takenSpots = this.allShipVectors();
-    while (
-      tries <
-      this.matrixShape[0] * this.matrixShape[1] - takenSpots.length
-    ) {
-      const head = this.pickShipHead(takenSpots);
-      if (this.lengthOfShips == 1) {
-        return new Ship({
-          vectors: [head],
-          sinkInOneHit: this.gameMode == GameMode.Easy,
-        });
-      }
-      const potentialBodies: Vector[][] = MatrixHelper.findNeighbours(
-        this.matrixShape,
-        head,
-        this.lengthOfShips - 1
-      );
-      // filter out bodies that have positions taken
-      const validBodies = potentialBodies.filter((body) => {
-        // make sure that bodies are not in take positions
-        return !body.find((vector) =>
-          takenSpots.find((x) => x[0] == vector[0] && x[1] == vector[1])
-        );
-      });
-
-      if (validBodies.length != 0)
-        return new Ship({
-          vectors: [head, ...randomChoice(validBodies)],
-          sinkInOneHit: this.gameMode == GameMode.Easy,
-        });
-      tries = tries + 1;
-    }
-    throw new BattleshipsError('Failed to create ship - no room');
-  }
-
-  /**
-   * Picks a pos in the in battlefield that is not in the taken spots list
-   * @param takenSpots
-   */
-  private pickShipHead(takenSpots: Vector[] = []): Vector {
-    const availablePositions = this.positionsInMatrix.filter((vec) => {
-      return !takenSpots.find((x) => x[0] == vec[0] && x[1] == vec[1]);
-    });
-    if (availablePositions.length == 0) {
-      throw new BattleshipsError('Too many ships');
-    }
-    return randomChoice(availablePositions);
+  public displayBattlefield(
+    battlefield: IBattlefield = this.battlefield
+  ): void {
+    this.display.displayBattlefield(battlefield, true);
   }
 }
