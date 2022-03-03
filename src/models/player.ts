@@ -10,7 +10,7 @@ export interface IPlayer {
   id: string;
   dead: boolean;
   battlefield: IBattlefield;
-  promptCoordinates(matrixShape: Vector): Promise<Vector>;
+  promptCoordinates(battlefield: IBattlefield): Promise<Vector>;
   handleTargetedResponse(response: ShootResponse): void;
   handleShooterResponse(response: ShootResponse): void;
   displayMessage(message: string): void;
@@ -37,16 +37,15 @@ export class Player implements IPlayer {
     this.display = display;
   }
 
-  promptCoordinates(matrixShape: Vector) {
-    return this.display.promptCoordinates(
-      matrixShape,
-      this.previousCoordinates
-    );
+  promptCoordinates(battlefield: IBattlefield) {
+    return this.display.promptCoordinates(battlefield);
   }
 
   public handleTargetedResponse(response: ShootResponse): void {}
 
-  public handleShooterResponse(response: ShootResponse): void {}
+  public handleShooterResponse(response: ShootResponse): void {
+    this.display.displayMessage('Shooter bitch');
+  }
 
   public displayMessage(message: string): void {
     this.display.displayMessage(message);

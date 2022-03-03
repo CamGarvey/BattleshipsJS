@@ -8,14 +8,11 @@ import { Vector } from './types';
 import { MatrixHelper } from './util';
 
 export interface IDisplay {
-  displayBattlefield: (Battlefield: IBattlefield, drawShips: boolean) => void;
+  displayBattlefield: (battlefield: IBattlefield, drawShips: boolean) => void;
   displayTitle: () => void;
   promptPlayAgain: () => Promise<boolean>;
   promptGameMode: () => Promise<GameMode>;
-  promptCoordinates: (
-    matrixShape: Vector,
-    previousCoordinates: Vector[]
-  ) => Promise<Vector>;
+  promptCoordinates: (battlefield: IBattlefield) => Promise<Vector>;
   displayShootMessage: (message: ShootMessage) => void;
   displayResult: (hasWon: boolean) => void;
   displayRemaining: (
@@ -29,10 +26,7 @@ export interface IDisplay {
 abstract class Display implements IDisplay {
   public abstract promptPlayAgain(): Promise<boolean>;
   public abstract promptGameMode(): Promise<GameMode>;
-  public abstract promptCoordinates(
-    matrixShape: Vector,
-    previousCoordinates: Vector[]
-  ): Promise<Vector>;
+  public abstract promptCoordinates(Battlefield: IBattlefield): Promise<Vector>;
 
   protected abstract createHitShip(): any;
 
@@ -46,10 +40,13 @@ abstract class Display implements IDisplay {
 
   protected alphabet = 'abcdefghijklmnopqrstuvwxyz';
 
+  protected abstract drawFieldTitle(battlefield);
+
   public displayBattlefield(
     battlefield: IBattlefield,
     drawUnHitShips: boolean
   ): void {
+    this.drawFieldTitle(battlefield);
     const allShipParts = battlefield.ships.map((ship) => ship.parts).flat();
     const rows: any[][] = [];
     for (let col = 0; col < battlefield.matrixShape[1]; col++) {
@@ -136,6 +133,10 @@ export class ConsoleDisplay extends Display {
 
   protected createHitOcean() {
     return chalk.red.bgBlue('X');
+  }
+
+  protected drawFieldTitle(battlefield: any) {
+    console.log(`\n\n    ${battlefield.id} field`);
   }
 
   private createTop(topLength: number): string {
@@ -232,10 +233,7 @@ export class ConsoleDisplay extends Display {
   /**
    * Prompt user for the target they wish to shoot
    */
-  public async promptCoordinates(
-    matrixShape: Vector,
-    previousCoordinates: Vector[]
-  ): Promise<Vector> {
+  public async promptCoordinates(battlefield: IBattlefield): Promise<Vector> {
     const response = await inquirer.prompt([
       {
         type: 'input',
@@ -251,10 +249,10 @@ export class ConsoleDisplay extends Display {
           vector[1] = parseInt(split[1]);
           console.log(vector);
 
-          if (MatrixHelper.isOutOfBounds(matrixShape, vector))
+          if (MatrixHelper.isOutOfBounds(battlefield.matrixShape, vector))
             return 'Out of bounds!';
           if (
-            previousCoordinates.find(
+            battlefield.enemyCoordinates.find(
               (coordinate) =>
                 coordinate[0] == vector[0] && coordinate[1] == vector[1]
             )

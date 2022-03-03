@@ -4,6 +4,7 @@ import { BattleshipsError } from './errors';
 import { IShip, Ship } from './ship';
 
 export interface IBattlefield {
+  id: string;
   ships: IShip[];
   matrixShape: Vector;
   enemyCoordinates: Vector[];
@@ -16,18 +17,21 @@ interface IShipMeta {
 }
 
 interface IBattlefieldOptions {
+  id: string;
   matrixShape: Vector;
   ships: IShipMeta[];
 }
 
 export class Battlefield implements IBattlefield {
+  public id: string;
   public ships: IShip[];
   public matrixShape: Vector;
   private allPositionsInMatrixShape: Vector[];
   private shipMeta: IShipMeta[];
   enemyCoordinates: Vector[] = [];
 
-  constructor({ matrixShape, ships }: IBattlefieldOptions) {
+  constructor({ id, matrixShape, ships }: IBattlefieldOptions) {
+    this.id = id;
     this.matrixShape = matrixShape;
     this.shipMeta = ships;
     this.allPositionsInMatrixShape = MatrixHelper.allPositionsInMatrixShape(

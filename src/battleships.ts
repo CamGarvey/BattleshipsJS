@@ -9,6 +9,7 @@ import { BattleshipsOptions } from './models/battleships-options';
 import { BattleshipsError } from './models/errors';
 import { IPlayerManager } from './models/player-manager';
 import { IPlayer, Player } from './models/player';
+import { IBattlefield } from './models/battlefield';
 
 export class Battleships {
   private state: BattleshipsState;
@@ -46,12 +47,13 @@ export class Battleships {
       MatrixHelper.allPositionsInMatrixShape(matrixShape);
   }
 
-  private shootAt(target: IPlayer, coordinates: Vector) {
+  private shootAt(battlefield: IBattlefield, coordinates: Vector) {
     let closestShip: IShip;
     let closestDistance: number;
 
     // only check ships that are not sunk
-    const aliveShips = target.battlefield.remainingShips();
+    battlefield.enemyCoordinates.push(coordinates);
+    const aliveShips = battlefield.remainingShips();
     for (let index = 0; index < aliveShips.length; index++) {
       const distance = aliveShips[index].checkHit(coordinates);
       if (distance == 0) return new ShootResponse(0, aliveShips[index]);
@@ -67,15 +69,20 @@ export class Battleships {
     let count = 0;
     while (this.state == BattleshipsState.Playing) {
       // Get Target
-      this.playerManager.shooter.displayBattlefield();
-
-      const coordinates = await this.playerManager.shooter.promptCoordinates(
-        this.matrixShape
+      this.playerManager.shooter.displayBattlefield(
+        this.playerManager.target.battlefield
       );
 
-      const response = this.shootAt(this.playerManager.target, coordinates);
+      const coordinates = await this.playerManager.shooter.promptCoordinates(
+        this.playerManager.target.battlefield
+      );
 
-      this.playerManager.handleResponse(response);
+      const response = this.shootAt(
+        this.playerManager.target.battlefield,
+        coordinates
+      );
+
+      this.playerManager.endTurn(response);
 
       // Add new target to previous targets
       // this.targets.push(target);
@@ -112,6 +119,9 @@ export class Battleships {
 
     this.state = BattleshipsState.Playing;
     while (this.state != BattleshipsState.Exit) {
+      const shooter = this.playerManager.shooter;
+      const target = this.playerManager.target;
+      this.playerManager.displayMessage(`${shooter.id}'s turn`);
       // this.gameMode = await this.display.promptGameMode();
       this.resetBattlefield();
       this.draw(debug);

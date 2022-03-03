@@ -8,7 +8,7 @@ export interface IPlayerManager {
   target: IPlayer;
   init(): void;
   addPlayer(player: IPlayer): void;
-  handleResponse(response: ShootResponse): void;
+  endTurn(response: ShootResponse): void;
   displayMessage(message: string): void;
 }
 
@@ -53,7 +53,7 @@ export class PlayerManager implements IPlayerManager {
     this._target = this.getNextPlayer(this.target);
   }
 
-  public handleResponse(response: ShootResponse) {
+  public endTurn(response: ShootResponse) {
     this.shooter.handleShooterResponse(response);
     this.target.handleShooterResponse(response);
     this.cyclePlayers();
