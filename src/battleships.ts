@@ -69,8 +69,9 @@ export class Battleships {
     let count = 0;
     while (this.state == BattleshipsState.Playing) {
       // Get Target
-      this.playerManager.shooter.displayBattlefield(
-        this.playerManager.target.battlefield
+      this.playerManager.shooter.displayBattlefields(
+        this.playerManager.target.battlefield,
+        this.playerManager.shooter.battlefield
       );
 
       const coordinates = await this.playerManager.shooter.promptCoordinates(

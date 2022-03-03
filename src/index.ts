@@ -11,7 +11,10 @@ const player1 = new Player({
     matrixShape: [3, 3],
     ships: [
       {
-        length: 1,
+        length: 2,
+      },
+      {
+        length: 2,
       },
     ],
   }),
@@ -25,7 +28,10 @@ const player2 = new Player({
     matrixShape: [3, 3],
     ships: [
       {
-        length: 1,
+        length: 2,
+      },
+      {
+        length: 2,
       },
     ],
   }),

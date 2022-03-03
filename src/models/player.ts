@@ -14,7 +14,10 @@ export interface IPlayer {
   handleTargetedResponse(response: ShootResponse): void;
   handleShooterResponse(response: ShootResponse): void;
   displayMessage(message: string): void;
-  displayBattlefield(battlefield?: IBattlefield): void;
+  displayBattlefields(
+    targetedBattlefield: IBattlefield,
+    ownBattlefield: IBattlefield
+  ): void;
 }
 
 interface PlayerOptions {
@@ -51,9 +54,10 @@ export class Player implements IPlayer {
     this.display.displayMessage(message);
   }
 
-  public displayBattlefield(
-    battlefield: IBattlefield = this.battlefield
+  public displayBattlefields(
+    targetedBattlefield: IBattlefield,
+    ownBattlefield: IBattlefield
   ): void {
-    this.display.displayBattlefield(battlefield, true);
+    this.display.displayBattlefields(targetedBattlefield, ownBattlefield);
   }
 }

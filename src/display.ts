@@ -8,7 +8,10 @@ import { Vector } from './types';
 import { MatrixHelper } from './util';
 
 export interface IDisplay {
-  displayBattlefield: (battlefield: IBattlefield, drawShips: boolean) => void;
+  displayBattlefields: (
+    targetedBattlefield: IBattlefield,
+    ownBattlefield: IBattlefield
+  ) => void;
   displayTitle: () => void;
   promptPlayAgain: () => Promise<boolean>;
   promptGameMode: () => Promise<GameMode>;
@@ -36,17 +39,19 @@ abstract class Display implements IDisplay {
 
   protected abstract createOcean(): any;
 
-  protected abstract draw(rows: any[][]): any;
+  protected abstract draw(
+    targetedBattlefieldRows: any[][],
+    ownBattlefieldRows: any[][]
+  ): any;
 
   protected alphabet = 'abcdefghijklmnopqrstuvwxyz';
 
-  protected abstract drawFieldTitle(battlefield);
+  protected abstract drawFieldTitle(battlefield: IBattlefield): any;
 
-  public displayBattlefield(
+  private createBattlefield(
     battlefield: IBattlefield,
     drawUnHitShips: boolean
-  ): void {
-    this.drawFieldTitle(battlefield);
+  ) {
     const allShipParts = battlefield.ships.map((ship) => ship.parts).flat();
     const rows: any[][] = [];
     for (let col = 0; col < battlefield.matrixShape[1]; col++) {
@@ -80,7 +85,17 @@ abstract class Display implements IDisplay {
       }
       rows.push(rowToDraw);
     }
-    this.draw(rows);
+    return rows;
+  }
+
+  public displayBattlefields(
+    targetedBattlefield: IBattlefield,
+    ownBattlefield: IBattlefield
+  ): void {
+    // this.drawFieldTitle(battlefield);
+    const targeted = this.createBattlefield(targetedBattlefield, false);
+    const own = this.createBattlefield(ownBattlefield, true);
+    this.draw(targeted, own);
   }
   public abstract displayShootMessage(message: ShootMessage): void;
   public abstract displayResult(hasWon: boolean): void;
@@ -176,12 +191,12 @@ export class ConsoleDisplay extends Display {
     return pad;
   }
 
-  protected draw(rows: string[][]) {
+  private createBattlefieldRows(battlefieldRows: string[][]): string[] {
     const numberColGap = this.hPadding(2, { draw: false });
-
-    this.vPadding();
-    console.log(numberColGap + this.createTop(rows[0].length));
-    rows.forEach((row, idx) => {
+    const lines = [
+      `${numberColGap + this.createTop(battlefieldRows[0].length)}`,
+    ];
+    battlefieldRows.forEach((row, idx) => {
       if (this.gaps) this.vPadding();
 
       for (let index = 0; index < this.resolution; index++) {
@@ -198,9 +213,23 @@ export class ConsoleDisplay extends Display {
           if (this.gaps) line.push(this.hPadding(1, { draw: false }));
         });
         // if (this.gaps) line.push(this.hPadding(1, { draw: false }));
-        console.log(line.join(''));
+        lines.push(line.join(''));
       }
     });
+    return lines;
+  }
+
+  protected draw(
+    targetedBattlefieldRows: string[][],
+    ownBattlefieldRows: string[][]
+  ) {
+    const targeted = this.createBattlefieldRows(targetedBattlefieldRows);
+    const ownBattlefield = this.createBattlefieldRows(ownBattlefieldRows);
+
+    this.vPadding();
+    for (let index = 0; index < targeted.length; index++) {
+      console.log(`${targeted[index]}    ${ownBattlefield[index]}`);
+    }
     this.vPadding();
   }
 
