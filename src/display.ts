@@ -26,27 +26,31 @@ export interface IDisplay {
   displayMessage(message: string): void;
 }
 
-abstract class Display implements IDisplay {
-  public abstract promptPlayAgain(): Promise<boolean>;
-  public abstract promptGameMode(): Promise<GameMode>;
-  public abstract promptCoordinates(Battlefield: IBattlefield): Promise<Vector>;
+export enum ConsoleResolution {
+  Small = 1,
+  Medium = 3,
+  Large = 5,
+  XLarge = 7,
+}
 
-  protected abstract createHitShip(): any;
-
-  protected abstract createShip(): any;
-
-  protected abstract createHitOcean(): any;
-
-  protected abstract createOcean(): any;
-
-  protected abstract draw(
-    targetedBattlefieldRows: any[][],
-    ownBattlefieldRows: any[][]
-  ): any;
-
+export class ConsoleDisplay implements IDisplay {
+  _xRes: number;
+  protected resolution: ConsoleResolution;
+  protected gaps: boolean;
   protected alphabet = 'abcdefghijklmnopqrstuvwxyz';
 
-  protected abstract drawFieldTitle(battlefield: IBattlefield): any;
+  constructor(
+    {
+      resolution = ConsoleResolution.Medium,
+      gaps = false,
+    }: {
+      resolution?: ConsoleResolution;
+      gaps?: boolean;
+    } = { resolution: ConsoleResolution.Medium, gaps: false }
+  ) {
+    this.resolution = resolution;
+    this.gaps = gaps;
+  }
 
   private createBattlefield(
     battlefield: IBattlefield,
@@ -93,45 +97,40 @@ abstract class Display implements IDisplay {
     ownBattlefield: IBattlefield
   ): void {
     // this.drawFieldTitle(battlefield);
-    const targeted = this.createBattlefield(targetedBattlefield, false);
-    const own = this.createBattlefield(ownBattlefield, true);
-    this.draw(targeted, own);
-  }
-  public abstract displayShootMessage(message: ShootMessage): void;
-  public abstract displayResult(hasWon: boolean): void;
-  public abstract displayTitle(): void;
-  public abstract displayRemaining(
-    ships: Ship[],
-    turnsHad: number,
-    turnsAllowed: number
-  ): void;
-  public abstract displayMessage(message: string): void;
-}
+    const targetedBattlefieldRows = this.createBattlefield(
+      targetedBattlefield,
+      false
+    );
+    const ownBattlefieldRows = this.createBattlefield(ownBattlefield, true);
+    const targetedConsoleLines = this.createConsoleLines(
+      targetedBattlefieldRows
+    );
+    const ownConsoleLines = this.createConsoleLines(ownBattlefieldRows);
 
-export enum ConsoleResolution {
-  Small = 1,
-  Medium = 3,
-  Large = 5,
-  XLarge = 7,
-}
+    const largerField =
+      targetedConsoleLines.length >= ownConsoleLines.length
+        ? targetedConsoleLines
+        : ownConsoleLines;
+    const smallerField =
+      targetedConsoleLines.length <= ownConsoleLines.length
+        ? targetedConsoleLines
+        : ownConsoleLines;
 
-export class ConsoleDisplay extends Display {
-  _xRes: number;
-  private resolution: ConsoleResolution;
-  private gaps: boolean;
+    const lengthOfSmallerFieldsRow = smallerField[2].length;
+    console.log(lengthOfSmallerFieldsRow);
 
-  constructor(
-    {
-      resolution,
-      gaps,
-    }: {
-      resolution?: ConsoleResolution;
-      gaps?: boolean;
-    } = { resolution: ConsoleResolution.Medium, gaps: false }
-  ) {
-    super();
-    this.resolution = resolution;
-    this.gaps = gaps;
+    this.vPadding();
+    for (let index = 0; index < largerField.length; index++) {
+      let targetRow = targetedConsoleLines[index];
+      if (targetRow == undefined) {
+        targetRow = Array.from(
+          { length: lengthOfSmallerFieldsRow / 3 },
+          () => ' '
+        ).join('');
+      }
+      console.log(`${targetRow}    ${ownConsoleLines[index]}`);
+    }
+    this.vPadding();
   }
 
   protected createHitShip() {
@@ -180,9 +179,15 @@ export class ConsoleDisplay extends Display {
   }
 
   private vPadding(n = 1, { draw }: { draw: boolean } = { draw: true }) {
+    const lines = [];
     for (let _ = 0; _ < n; _++) {
-      console.log();
+      if (draw) {
+        console.log();
+      } else {
+        lines.push('');
+      }
     }
+    return lines;
   }
 
   private hPadding(n = 1, { draw }: { draw: boolean } = { draw: true }) {
@@ -191,13 +196,13 @@ export class ConsoleDisplay extends Display {
     return pad;
   }
 
-  private createBattlefieldRows(battlefieldRows: string[][]): string[] {
+  private createConsoleLines(battlefieldRows: string[][]): string[] {
     const numberColGap = this.hPadding(2, { draw: false });
     const lines = [
       `${numberColGap + this.createTop(battlefieldRows[0].length)}`,
     ];
     battlefieldRows.forEach((row, idx) => {
-      if (this.gaps) this.vPadding();
+      if (this.gaps) lines.push(...this.vPadding(1, { draw: false }));
 
       for (let index = 0; index < this.resolution; index++) {
         const line = [];
@@ -217,20 +222,6 @@ export class ConsoleDisplay extends Display {
       }
     });
     return lines;
-  }
-
-  protected draw(
-    targetedBattlefieldRows: string[][],
-    ownBattlefieldRows: string[][]
-  ) {
-    const targeted = this.createBattlefieldRows(targetedBattlefieldRows);
-    const ownBattlefield = this.createBattlefieldRows(ownBattlefieldRows);
-
-    this.vPadding();
-    for (let index = 0; index < targeted.length; index++) {
-      console.log(`${targeted[index]}    ${ownBattlefield[index]}`);
-    }
-    this.vPadding();
   }
 
   async promptPlayAgain() {

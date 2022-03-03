@@ -8,7 +8,7 @@ const player1 = new Player({
   id: 'Cam',
   battlefield: new Battlefield({
     id: 'helllo',
-    matrixShape: [3, 3],
+    matrixShape: [4, 4],
     ships: [
       {
         length: 2,
@@ -18,7 +18,7 @@ const player1 = new Player({
       },
     ],
   }),
-  display: new ConsoleDisplay(),
+  display: new ConsoleDisplay({ gaps: true }),
 });
 
 const player2 = new Player({
@@ -35,7 +35,7 @@ const player2 = new Player({
       },
     ],
   }),
-  display: new ConsoleDisplay(),
+  display: new ConsoleDisplay({ gaps: true }),
 });
 
 const playerManager = new PlayerManager([player1, player2]);

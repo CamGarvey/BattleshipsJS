@@ -67,7 +67,7 @@ export class Battlefield implements IBattlefield {
   public createShips() {
     this.ships = [];
     this.shipMeta.forEach((option) => {
-      this.createShip(option.length);
+      this.ships.push(this.createShip(option.length));
     });
   }
 
