@@ -89,7 +89,33 @@ export class ConsoleDisplay implements IDisplay {
       }
       rows.push(rowToDraw);
     }
-    return rows;
+    return this.doTheThing(rows);
+  }
+
+  private doTheThing(rows: string[][]): string[] {
+    const numberColGap = this.hPadding(2, { draw: false });
+    const lines = [`${numberColGap + this.createTop(rows[0].length)}`];
+    rows.forEach((row, idx) => {
+      if (this.gaps) lines.push(...this.vPadding(1, { draw: false }));
+
+      for (let index = 0; index < this.resolution; index++) {
+        const line = [];
+        if (index == Math.floor(this.resolution / 2)) {
+          line.push(idx + this.hPadding(1, { draw: false }));
+        } else {
+          line.push(this.hPadding(2, { draw: false }));
+        }
+        row.forEach((col) => {
+          for (let index = 0; index < this.xRes; index++) {
+            line.push(col);
+          }
+          if (this.gaps) line.push(this.hPadding(1, { draw: false }));
+        });
+        // if (this.gaps) line.push(this.hPadding(1, { draw: false }));
+        lines.push(line.join(''));
+      }
+    });
+    return lines;
   }
 
   public displayBattlefields(
@@ -97,38 +123,35 @@ export class ConsoleDisplay implements IDisplay {
     ownBattlefield: IBattlefield
   ): void {
     // this.drawFieldTitle(battlefield);
+    const ownBattlefieldRows = this.createBattlefield(ownBattlefield, true);
     const targetedBattlefieldRows = this.createBattlefield(
       targetedBattlefield,
       false
     );
-    const ownBattlefieldRows = this.createBattlefield(ownBattlefield, true);
-    const targetedConsoleLines = this.createConsoleLines(
-      targetedBattlefieldRows
-    );
-    const ownConsoleLines = this.createConsoleLines(ownBattlefieldRows);
 
     const largerField =
-      targetedConsoleLines.length >= ownConsoleLines.length
-        ? targetedConsoleLines
-        : ownConsoleLines;
-    const smallerField =
-      targetedConsoleLines.length <= ownConsoleLines.length
-        ? targetedConsoleLines
-        : ownConsoleLines;
+      targetedBattlefieldRows.length >= ownBattlefieldRows.length
+        ? targetedBattlefieldRows
+        : ownBattlefieldRows;
 
-    const lengthOfSmallerFieldsRow = smallerField[2].length;
-    console.log(lengthOfSmallerFieldsRow);
+    const smallerField =
+      targetedBattlefield.matrixShape[0] <= ownBattlefield.matrixShape[0]
+        ? targetedBattlefield
+        : ownBattlefield;
 
     this.vPadding();
     for (let index = 0; index < largerField.length; index++) {
-      let targetRow = targetedConsoleLines[index];
+      let targetRow = targetedBattlefieldRows[index];
       if (targetRow == undefined) {
-        targetRow = Array.from(
-          { length: lengthOfSmallerFieldsRow / 3 },
-          () => ' '
-        ).join('');
+        targetRow = targetedBattlefieldRows[2]
+          .replace('[34m', ' ')
+          .replace('[44m', ' ')
+          .replace('[39m', ' ')
+          .replace('[49m', ' ');
       }
-      console.log(`${targetRow}    ${ownConsoleLines[index]}`);
+      const ownRow =
+        ownBattlefieldRows[index] == undefined ? '' : ownBattlefieldRows[index];
+      console.log(`${targetRow}    ${ownRow}`);
     }
     this.vPadding();
   }
@@ -194,34 +217,6 @@ export class ConsoleDisplay implements IDisplay {
     const pad = Array.from({ length: n }, () => ' ').join('');
     if (draw) console.log(pad);
     return pad;
-  }
-
-  private createConsoleLines(battlefieldRows: string[][]): string[] {
-    const numberColGap = this.hPadding(2, { draw: false });
-    const lines = [
-      `${numberColGap + this.createTop(battlefieldRows[0].length)}`,
-    ];
-    battlefieldRows.forEach((row, idx) => {
-      if (this.gaps) lines.push(...this.vPadding(1, { draw: false }));
-
-      for (let index = 0; index < this.resolution; index++) {
-        const line = [];
-        if (index == Math.floor(this.resolution / 2)) {
-          line.push(idx + this.hPadding(1, { draw: false }));
-        } else {
-          line.push(this.hPadding(2, { draw: false }));
-        }
-        row.forEach((col) => {
-          for (let index = 0; index < this.xRes; index++) {
-            line.push(col);
-          }
-          if (this.gaps) line.push(this.hPadding(1, { draw: false }));
-        });
-        // if (this.gaps) line.push(this.hPadding(1, { draw: false }));
-        lines.push(line.join(''));
-      }
-    });
-    return lines;
   }
 
   async promptPlayAgain() {
