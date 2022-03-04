@@ -7,7 +7,7 @@ import { PlayerManager } from './models/player-manager';
 const player1 = new Player({
   id: 'Cam',
   battlefield: new Battlefield({
-    id: 'helllo',
+    id: "Cam's Field",
     matrixShape: [4, 4],
     ships: [
       {
@@ -20,14 +20,14 @@ const player1 = new Player({
   }),
   display: new ConsoleDisplay({
     gaps: true,
-    resolution: ConsoleResolution.XLarge,
+    resolution: ConsoleResolution.Large,
   }),
 });
 
 const player2 = new Player({
   id: 'RIVAL',
   battlefield: new Battlefield({
-    id: 'BITCH FIELD',
+    id: "RIVAL's FIELD",
     matrixShape: [3, 3],
     ships: [
       {

@@ -140,18 +140,62 @@ export class ConsoleDisplay implements IDisplay {
         : ownBattlefield;
 
     this.vPadding();
+
+    const gap = this.gaps ? targetedBattlefield.matrixShape[0] : 0;
+
+    const lengthOfTargetedBattleField =
+      targetedBattlefield.matrixShape[0] * (this.resolution * 2) + 5 + gap;
+
+    const lengthOfOwnBattleField =
+      ownBattlefield.matrixShape[0] * (this.resolution * 2) + 5 + gap;
+
+    const spaceBetweenBattlefields = 10;
+    const spaceBetweenBattlefieldsDrawn = this.hPadding(
+      spaceBetweenBattlefields,
+      { draw: false }
+    );
+
+    const targetBattlefieldHeading =
+      this.hPadding(
+        Math.ceil(
+          lengthOfTargetedBattleField / 2 - targetedBattlefield.id.length / 2
+        ),
+        { draw: false }
+      ) +
+      targetedBattlefield.id +
+      this.hPadding(
+        Math.ceil(
+          lengthOfTargetedBattleField / 2 - targetedBattlefield.id.length / 2
+        ),
+        { draw: false }
+      );
+
+    const ownBattlefieldHeading =
+      this.hPadding(
+        Math.ceil(lengthOfOwnBattleField / 2 - ownBattlefield.id.length / 2),
+        { draw: false }
+      ) +
+      ownBattlefield.id +
+      this.hPadding(
+        Math.ceil(lengthOfOwnBattleField / 2 - ownBattlefield.id.length / 2),
+        { draw: false }
+      );
+
+    console.log(
+      `${targetBattlefieldHeading}${spaceBetweenBattlefieldsDrawn}${ownBattlefieldHeading}`
+    );
+
     for (let index = 0; index < largerField.length; index++) {
       let targetRow = targetedBattlefieldRows[index];
       if (targetRow == undefined) {
-        targetRow = targetedBattlefieldRows[2]
-          .replace('[34m', ' ')
-          .replace('[44m', ' ')
-          .replace('[39m', ' ')
-          .replace('[49m', ' ');
+        // This means there is no more rows on the left/target battlefield
+        // Create an imaginary row out of spaces
+        targetRow = this.hPadding(lengthOfTargetedBattleField, { draw: false });
       }
       const ownRow =
         ownBattlefieldRows[index] == undefined ? '' : ownBattlefieldRows[index];
-      console.log(`${targetRow}    ${ownRow}`);
+
+      console.log(`${targetRow}${spaceBetweenBattlefieldsDrawn}${ownRow}`);
     }
     this.vPadding();
   }
