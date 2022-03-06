@@ -6,7 +6,7 @@ export class ShootResponse {
   distance: number;
   sunk: boolean;
 
-  constructor(distance: number, private ship: IShip) {
+  constructor(distance: number, ship: IShip) {
     this.distance = Math.abs(distance);
     this.sunk = ship.sunk;
   }

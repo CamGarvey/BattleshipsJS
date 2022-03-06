@@ -13,13 +13,7 @@ import { IBattlefield } from './models/battlefield';
 
 export class Battleships {
   private state: BattleshipsState;
-
-  private positionsInMatrix: Vector[];
   private gameMode: GameMode;
-
-  private matrixShape: Vector;
-  private lengthOfShips: number;
-  private numberOfShips: number;
   private numberOfTurns: number;
 
   constructor(
@@ -37,14 +31,8 @@ export class Battleships {
     if (lengthOfShips > matrixShape[0] && lengthOfShips > matrixShape[1]) {
       throw new BattleshipsError('Ships too big');
     }
-    this.matrixShape = matrixShape;
-    this.lengthOfShips = lengthOfShips;
-    this.numberOfShips = numberOfShips;
     this.numberOfTurns = numberOfTurns;
     this.state = BattleshipsState.Idle;
-
-    this.positionsInMatrix =
-      MatrixHelper.allPositionsInMatrixShape(matrixShape);
   }
 
   private shootAt(battlefield: IBattlefield, coordinates: Vector) {
@@ -66,7 +54,7 @@ export class Battleships {
   }
 
   private async playLoop(debug = false) {
-    let count = 0;
+    this.playerManager.init();
     while (this.state == BattleshipsState.Playing) {
       const shooter = this.playerManager.shooter;
       const target = this.playerManager.target;
@@ -79,9 +67,7 @@ export class Battleships {
 
       const response = this.shootAt(target.battlefield, coordinates);
 
-      this.playerManager.endTurn(response);
-      count++;
-      if (count == this.numberOfTurns) this.state = BattleshipsState.Lost;
+      this.state = this.playerManager.endTurn(response);
     }
   }
 
@@ -99,7 +85,6 @@ export class Battleships {
   }
 
   public async run(debug = false) {
-    this.playerManager.init();
     this.playerManager.displayMessage('Battleships!!');
 
     this.state = BattleshipsState.Playing;

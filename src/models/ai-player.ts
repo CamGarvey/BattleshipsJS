@@ -52,15 +52,9 @@ export class AIPlayer implements IPlayer {
             this.shots[0].coordinate,
             this.shots[0].distance == 0 ? 1 : this.shots[0].distance
           );
-          const lastOfNeighbours = neighbours.map((x) => x[0]);
+          const furthestNeighbour = neighbours.map((x) => x[x.length - 1]);
 
-          console.log({
-            n: neighbours.map((x) => x.map((t) => t)),
-            lastOfNeighbours,
-            prev: this.previousCoordinates,
-          });
-
-          const validNeighbours = lastOfNeighbours.filter(
+          const validNeighbours = furthestNeighbour.filter(
             (n) =>
               !this.previousCoordinates.find(
                 (pc) => pc[0] == n[0] && pc[1] == n[1]

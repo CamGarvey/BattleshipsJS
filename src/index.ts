@@ -4,11 +4,6 @@ import { AIPlayer } from './models/ai-player';
 import { Battlefield } from './models/battlefield';
 import { Player } from './models/player';
 import { PlayerManager } from './models/player-manager';
-import { MatrixHelper } from './util';
-
-const neighbours = MatrixHelper.findNeighbours([8, 8], [3, 3], 2);
-
-console.log(neighbours);
 
 const player1 = new Player({
   id: 'Cam',
@@ -18,6 +13,7 @@ const player1 = new Player({
     ships: [
       {
         length: 4,
+        sinkInOne: false,
       },
     ],
   }),
@@ -52,12 +48,16 @@ const ai = new AIPlayer({
     ships: [
       {
         length: 4,
+        sinkInOne: false,
       },
     ],
   }),
 });
 
-const playerManager = new PlayerManager([player1, ai]);
+const playerManager = new PlayerManager({
+  players: [player1, ai],
+  numberOfTurns: 5,
+});
 
 const battleships = new Battleships(
   {
