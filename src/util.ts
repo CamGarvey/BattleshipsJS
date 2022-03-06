@@ -39,7 +39,7 @@ export class MatrixHelper {
 
     // Find top neighbours
     if (row - size >= 0) {
-      for (let index = row - size; index < row; index++) {
+      for (let index = row - 1; index >= row - size; index--) {
         top.push([col, index]);
       }
     } else {
@@ -56,7 +56,7 @@ export class MatrixHelper {
 
     // Find left neighbours
     if (col - size >= 0) {
-      for (let index = col - size; index < col; index++) {
+      for (let index = col - 1; index >= col - size; index--) {
         left.push([index, row]);
       }
     } else {
