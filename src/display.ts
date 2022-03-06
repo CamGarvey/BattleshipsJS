@@ -13,7 +13,7 @@ export interface IDisplay {
     ownBattlefield: IBattlefield
   ) => void;
   displayTitle: () => void;
-  promptPlayAgain: () => Promise<boolean>;
+  promptBool(message: string): Promise<boolean>;
   promptGameMode: () => Promise<GameMode>;
   promptCoordinates: (battlefield: IBattlefield) => Promise<Vector>;
   displayShootMessage: (message: ShootMessage) => void;
@@ -118,6 +118,20 @@ export class ConsoleDisplay implements IDisplay {
     return lines;
   }
 
+  public async promptBool(message: string) {
+    return inquirer
+      .prompt([
+        {
+          name: 'question',
+          message: message,
+          type: 'confirm',
+        },
+      ])
+      .then((value) => {
+        return value.question == 'Yes';
+      });
+  }
+
   public displayBattlefields(
     targetedBattlefield: IBattlefield,
     ownBattlefield: IBattlefield
@@ -144,7 +158,10 @@ export class ConsoleDisplay implements IDisplay {
     const gap = this.gaps ? targetedBattlefield.matrixShape[0] : 0;
 
     const lengthOfTargetedBattleField =
-      targetedBattlefield.matrixShape[0] * (this.resolution * 2) + 5 + gap;
+      targetedBattlefield.matrixShape[0] * (this.resolution * 2) +
+      targetedBattlefield.matrixShape[0] +
+      2 +
+      gap;
 
     const lengthOfOwnBattleField =
       ownBattlefield.matrixShape[0] * (this.resolution * 2) + 5 + gap;

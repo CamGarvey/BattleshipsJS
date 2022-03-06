@@ -16,7 +16,7 @@ class Shot {
 
 export class AIPlayer implements IPlayer {
   id: string;
-  dead: boolean;
+  isDead: boolean;
   battlefield: IBattlefield;
   previousCoordinates: Vector[];
   shots: Shot[];
@@ -45,8 +45,68 @@ export class AIPlayer implements IPlayer {
         } else {
           // Work out a good coord to shoot at
           this.shots.sort((a, b) => a.distance - b.distance);
-          console.log(this.shots);
 
+          if (this.shots.length > 1) {
+            // check if last two were hits
+            if (this.shots[0].distance == 0 && this.shots[1].distance == 0) {
+              // Last two shots were hit, that means we know it's angle
+              const testShot = this.shots[0];
+
+              // check if rows are the same, if they are then it's horizontal
+              const isHorizontal =
+                this.shots[0].coordinate[1] == this.shots[1].coordinate[1];
+              if (isHorizontal) {
+                const allShotsOnTheRow = this.shots
+                  .filter(
+                    (shot) =>
+                      shot.coordinate[1] == testShot.coordinate[1] &&
+                      shot.distance == 0
+                  )
+                  .sort((a, b) => a.coordinate[0] - b.coordinate[0]);
+                const potentialCoords = [];
+                const left = allShotsOnTheRow[0].coordinate[0] - 1;
+                const right =
+                  allShotsOnTheRow[allShotsOnTheRow.length - 1].coordinate[0] +
+                  1;
+                if (left >= 0) {
+                  potentialCoords.push([left, testShot.coordinate[1]]);
+                }
+                if (right < battlefield.matrixShape[0]) {
+                  potentialCoords.push([right, testShot.coordinate[1]]);
+                }
+                console.log({
+                  allShotsOnTheRow: allShotsOnTheRow.map((x) => x.coordinate),
+                  potentialCoords,
+                });
+                const coord = Marray.randomChoice(potentialCoords);
+                this.previousCoordinates.push(coord);
+                resolve(coord);
+              } else {
+                const allShotsOnTheCol = this.shots
+                  .filter(
+                    (shot) =>
+                      shot.coordinate[0] == testShot.coordinate[0] &&
+                      shot.distance == 0
+                  )
+                  .sort((a, b) => a.coordinate[1] - b.coordinate[1]);
+                const potentialCoords = [];
+                const top = allShotsOnTheCol[0].coordinate[1] - 1;
+                const bottom =
+                  allShotsOnTheCol[allShotsOnTheCol.length - 1].coordinate[1] +
+                  1;
+                if (top >= 0) {
+                  potentialCoords.push([testShot.coordinate[0], top]);
+                }
+                if (bottom < battlefield.matrixShape[1]) {
+                  potentialCoords.push([testShot.coordinate[1], bottom]);
+                }
+                console.log({ allShotsOnTheCol, potentialCoords });
+                const coord = Marray.randomChoice(potentialCoords);
+                this.previousCoordinates.push(coord);
+                resolve(coord);
+              }
+            }
+          }
           const neighbours = MatrixHelper.findNeighbours(
             battlefield.matrixShape,
             this.shots[0].coordinate,
@@ -60,7 +120,6 @@ export class AIPlayer implements IPlayer {
                 (pc) => pc[0] == n[0] && pc[1] == n[1]
               )
           );
-          if (validNeighbours.length == 0) console.error('oh shit');
           const coord = Marray.randomChoice(validNeighbours);
           this.previousCoordinates.push(coord);
           resolve(coord);
@@ -95,5 +154,10 @@ export class AIPlayer implements IPlayer {
     _ownBattlefield: IBattlefield
   ): void {
     return;
+  }
+
+  promptPlayAgain(): Promise<boolean> {
+    // AI will never reject a game of Battleships!
+    return new Promise((res) => res(true));
   }
 }

@@ -9,9 +9,10 @@ import { ShootResponse } from './shoot-response';
 
 export interface IPlayer {
   id: string;
-  dead: boolean;
+  isDead: boolean;
   battlefield: IBattlefield;
   promptCoordinates(battlefield: IBattlefield): Promise<Vector>;
+  promptPlayAgain(): Promise<boolean>;
   handleTargetedResponse(response: ShootResponse): void;
   handleShooterResponse(response: ShootResponse): void;
   displayMessage(message: string): void;
@@ -30,7 +31,7 @@ interface PlayerOptions {
 
 export class Player implements IPlayer {
   id: string;
-  dead: boolean;
+  isDead: boolean;
   private previousCoordinates: Vector[];
   public battlefield: IBattlefield;
   private display: IDisplay;
@@ -69,5 +70,9 @@ export class Player implements IPlayer {
     ownBattlefield: IBattlefield
   ): void {
     this.display.displayBattlefields(targetedBattlefield, ownBattlefield);
+  }
+
+  public promptPlayAgain() {
+    return this.display.promptBool('Play Again?');
   }
 }

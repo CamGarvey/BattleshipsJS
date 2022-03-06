@@ -75,7 +75,7 @@ export class PlayerManager implements IPlayerManager {
     this.playCount++;
     this.shooter.handleShooterResponse(response);
     this.target.handleTargetedResponse(response);
-    if (this.target.dead) {
+    if (this.target.isDead) {
       this.target.displayMessage('You Lose!');
       this.shooter.displayMessage('You Win!');
       return BattleshipsState.GameOver;

@@ -9,20 +9,35 @@ const player1 = new Player({
   id: 'Cam',
   battlefield: new Battlefield({
     id: "Cam's Field",
-    matrixShape: [8, 8],
+    matrixShape: [6, 6],
     ships: [
       {
-        length: 4,
+        length: 6,
         sinkInOne: false,
       },
     ],
   }),
   display: new ConsoleDisplay({
-    gaps: true,
+    gaps: false,
     resolution: ConsoleResolution.Medium,
   }),
 });
 
+const ai = new AIPlayer({
+  id: 'RIVAL',
+  battlefield: new Battlefield({
+    id: "RIVAL's FIELD",
+    matrixShape: [6, 6],
+    ships: [
+      {
+        length: 6,
+        sinkInOne: false,
+      },
+    ],
+  }),
+});
+
+// PLAYER vs PLAYER
 // const player2 = new Player({
 //   id: 'RIVAL',
 //   battlefield: new Battlefield({
@@ -40,33 +55,12 @@ const player1 = new Player({
 //   display: new ConsoleDisplay({ gaps: true }),
 // });
 
-const ai = new AIPlayer({
-  id: 'RIVAL',
-  battlefield: new Battlefield({
-    id: "RIVAL's FIELD",
-    matrixShape: [8, 8],
-    ships: [
-      {
-        length: 4,
-        sinkInOne: false,
-      },
-    ],
-  }),
-});
-
 const playerManager = new PlayerManager({
   players: [player1, ai],
-  numberOfTurns: 5,
+  numberOfTurns: 20,
 });
 
-const battleships = new Battleships(
-  {
-    matrixShape: [5, 5],
-    numberOfShips: 2,
-    lengthOfShips: 2,
-  },
-  playerManager
-);
+const battleships = new Battleships(playerManager);
 
 (async () => {
   battleships.run();

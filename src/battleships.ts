@@ -5,7 +5,6 @@ import { GameMode } from './models/game-mode';
 import { ConsoleDisplay, IDisplay } from './display';
 import { Vector } from './types';
 import { BattleshipsState } from './models/battleship-state';
-import { BattleshipsOptions } from './models/battleships-options';
 import { BattleshipsError } from './models/errors';
 import { IPlayerManager } from './models/player-manager';
 import { IPlayer, Player } from './models/player';
@@ -13,25 +12,8 @@ import { IBattlefield } from './models/battlefield';
 
 export class Battleships {
   private state: BattleshipsState;
-  private gameMode: GameMode;
-  private numberOfTurns: number;
 
-  constructor(
-    {
-      matrixShape,
-      lengthOfShips,
-      numberOfShips,
-      numberOfTurns = 20,
-    }: BattleshipsOptions,
-    private playerManager: IPlayerManager
-  ) {
-    if (lengthOfShips <= 0) {
-      throw new BattleshipsError('Ship must be at least 1 in length');
-    }
-    if (lengthOfShips > matrixShape[0] && lengthOfShips > matrixShape[1]) {
-      throw new BattleshipsError('Ships too big');
-    }
-    this.numberOfTurns = numberOfTurns;
+  constructor(private playerManager: IPlayerManager) {
     this.state = BattleshipsState.Idle;
   }
 
@@ -58,30 +40,22 @@ export class Battleships {
     while (this.state == BattleshipsState.Playing) {
       const shooter = this.playerManager.shooter;
       const target = this.playerManager.target;
+
       shooter.displayMessage('Your turn!');
       target.displayMessage(`${shooter.id}'s turn`);
-      // Get Target
+
+      // Display the battlefields to the shooter
       shooter.displayBattlefields(target.battlefield, shooter.battlefield);
 
+      // Prompt shooter for coordinates
       const coordinates = await shooter.promptCoordinates(target.battlefield);
 
+      // Shoot at the target's battlefield
       const response = this.shootAt(target.battlefield, coordinates);
 
+      // Handle response
       this.state = this.playerManager.endTurn(response);
     }
-  }
-
-  private resetBattlefield() {
-    // this.createShips();
-  }
-
-  private draw(drawShips: boolean) {
-    // this.display.displayBattlefield(
-    //   this.matrixShape,
-    //   // this.targets,
-    //   // this.ships,
-    //   drawShips
-    // );
   }
 
   public async run(debug = false) {
@@ -89,18 +63,7 @@ export class Battleships {
 
     this.state = BattleshipsState.Playing;
     while (this.state != BattleshipsState.Exit) {
-      // this.gameMode = await this.display.promptGameMode();
-      this.resetBattlefield();
-      this.draw(debug);
       await this.playLoop(debug);
-      // Draw final battlefield to console
-      this.draw(true);
-      // Display if won or lose
-      // this.display.displayResult(this.state == BattleshipsState.Won);
-      // const playAgain = await this.display.promptPlayAgain();
-      // if (!playAgain) {
-      //   this.state = BattleshipsState.Exit;
-      // }
     }
   }
 }

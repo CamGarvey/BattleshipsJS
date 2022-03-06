@@ -18,6 +18,71 @@ export class MatrixHelper {
     return positions;
   }
 
+  public static findLeftNeighbours(vector: Vector, size = 1): Vector[] {
+    const col = vector[0];
+    const row = vector[1];
+    let neighbours: Vector[] = [];
+    if (col - size >= 0) {
+      for (let index = col - 1; index >= col - size; index--) {
+        neighbours.push([index, row]);
+      }
+    } else {
+      neighbours = [];
+    }
+
+    return neighbours;
+  }
+
+  public static findRightNeighbours(
+    matrixShape: Vector,
+    vector: Vector,
+    size = 1
+  ): Vector[] {
+    const col = vector[0];
+    const row = vector[1];
+    let neighbours: Vector[] = [];
+    if (col + size < matrixShape[0]) {
+      for (let index = 1; index < size + 1; index++) {
+        neighbours.push([col + index, row]);
+      }
+    } else {
+      neighbours = [];
+    }
+    return neighbours;
+  }
+
+  public static findTopNeighbours(vector: Vector, size = 1): Vector[] {
+    const col = vector[0];
+    const row = vector[1];
+    let neighbours: Vector[] = [];
+    if (row - size >= 0) {
+      for (let index = row - 1; index >= row - size; index--) {
+        neighbours.push([col, index]);
+      }
+    } else {
+      neighbours = [];
+    }
+    return neighbours;
+  }
+
+  public static findBottomNeighbours(
+    matrixShape: Vector,
+    vector: Vector,
+    size = 1
+  ): Vector[] {
+    const col = vector[0];
+    const row = vector[1];
+    let neighbours: Vector[] = [];
+    if (row + size < matrixShape[1]) {
+      for (let index = 1; index < size + 1; index++) {
+        neighbours.push([col, row + index]);
+      }
+    } else {
+      neighbours = [];
+    }
+    return neighbours;
+  }
+
   /**
    * Finds the neighbours of the given position
    * @param vector
@@ -29,48 +94,10 @@ export class MatrixHelper {
     vector: Vector,
     size = 1
   ): Vector[][] {
-    const col = vector[0];
-    const row = vector[1];
-
-    let top: Vector[] = [];
-    let bottom: Vector[] = [];
-    let left: Vector[] = [];
-    let right: Vector[] = [];
-
-    // Find top neighbours
-    if (row - size >= 0) {
-      for (let index = row - 1; index >= row - size; index--) {
-        top.push([col, index]);
-      }
-    } else {
-      top = [];
-    }
-    // Find bottom neighbours
-    if (row + size < matrixShape[1]) {
-      for (let index = 1; index < size + 1; index++) {
-        bottom.push([col, row + index]);
-      }
-    } else {
-      bottom = [];
-    }
-
-    // Find left neighbours
-    if (col - size >= 0) {
-      for (let index = col - 1; index >= col - size; index--) {
-        left.push([index, row]);
-      }
-    } else {
-      left = [];
-    }
-
-    // Find right neighbours
-    if (col + size < matrixShape[0]) {
-      for (let index = 1; index < size + 1; index++) {
-        right.push([col + index, row]);
-      }
-    } else {
-      right = [];
-    }
+    let top: Vector[] = this.findTopNeighbours(vector, size);
+    let bottom: Vector[] = this.findBottomNeighbours(matrixShape, vector, size);
+    let left: Vector[] = this.findLeftNeighbours(vector, size);
+    let right: Vector[] = this.findRightNeighbours(matrixShape, vector, size);
     // filter out empty arrays and return list
     return [top, bottom, left, right].filter((x) => x.length !== 0);
   }
