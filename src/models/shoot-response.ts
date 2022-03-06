@@ -4,9 +4,11 @@ import { ShootMessage } from './shoot-message';
 
 export class ShootResponse {
   distance: number;
+  sunk: boolean;
 
   constructor(distance: number, private ship: IShip) {
     this.distance = Math.abs(distance);
+    this.sunk = ship.sunk;
   }
 
   public message() {

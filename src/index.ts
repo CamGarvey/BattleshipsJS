@@ -1,5 +1,6 @@
 import { Battleships } from './battleships';
 import { ConsoleDisplay, ConsoleResolution } from './display';
+import { AIPlayer } from './models/ai-player';
 import { Battlefield } from './models/battlefield';
 import { Player } from './models/player';
 import { PlayerManager } from './models/player-manager';
@@ -8,40 +9,50 @@ const player1 = new Player({
   id: 'Cam',
   battlefield: new Battlefield({
     id: "Cam's Field",
-    matrixShape: [4, 4],
+    matrixShape: [8, 8],
     ships: [
       {
-        length: 2,
-      },
-      {
-        length: 2,
+        length: 4,
       },
     ],
   }),
   display: new ConsoleDisplay({
     gaps: true,
-    resolution: ConsoleResolution.Large,
+    resolution: ConsoleResolution.Medium,
   }),
 });
 
-const player2 = new Player({
+// const player2 = new Player({
+//   id: 'RIVAL',
+//   battlefield: new Battlefield({
+//     id: "RIVAL's FIELD",
+//     matrixShape: [3, 3],
+//     ships: [
+//       {
+//         length: 2,
+//       },
+//       {
+//         length: 2,
+//       },
+//     ],
+//   }),
+//   display: new ConsoleDisplay({ gaps: true }),
+// });
+
+const ai = new AIPlayer({
   id: 'RIVAL',
   battlefield: new Battlefield({
     id: "RIVAL's FIELD",
-    matrixShape: [3, 3],
+    matrixShape: [8, 8],
     ships: [
       {
-        length: 2,
-      },
-      {
-        length: 2,
+        length: 4,
       },
     ],
   }),
-  display: new ConsoleDisplay({ gaps: true }),
 });
 
-const playerManager = new PlayerManager([player1, player2]);
+const playerManager = new PlayerManager([player1, ai]);
 
 const battleships = new Battleships(
   {

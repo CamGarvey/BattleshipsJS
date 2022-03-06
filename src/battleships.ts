@@ -27,7 +27,7 @@ export class Battleships {
       matrixShape,
       lengthOfShips,
       numberOfShips,
-      numberOfTurns = 5,
+      numberOfTurns = 20,
     }: BattleshipsOptions,
     private playerManager: IPlayerManager
   ) {
@@ -68,36 +68,20 @@ export class Battleships {
   private async playLoop(debug = false) {
     let count = 0;
     while (this.state == BattleshipsState.Playing) {
+      const shooter = this.playerManager.shooter;
+      const target = this.playerManager.target;
+      shooter.displayMessage('Your turn!');
+      target.displayMessage(`${shooter.id}'s turn`);
       // Get Target
-      this.playerManager.shooter.displayBattlefields(
-        this.playerManager.target.battlefield,
-        this.playerManager.shooter.battlefield
-      );
+      shooter.displayBattlefields(target.battlefield, shooter.battlefield);
 
-      const coordinates = await this.playerManager.shooter.promptCoordinates(
-        this.playerManager.target.battlefield
-      );
+      const coordinates = await shooter.promptCoordinates(target.battlefield);
 
-      const response = this.shootAt(
-        this.playerManager.target.battlefield,
-        coordinates
-      );
+      const response = this.shootAt(target.battlefield, coordinates);
 
       this.playerManager.endTurn(response);
-
-      // Add new target to previous targets
-      // this.targets.push(target);
-      // // Shoot at target
-      // const response = this.shoot(target);
-      // // Print out response message
-      // this.display.displayShootMessage(response.message());
-      // // Draw Battlefield to console
-      // this.draw(debug);
-      // Print Ships remaining
-      // console.log(`${this.ships.length - l[s for s in self._ships if s.sunk])}/{len(self._ships)} ships remaining')
       count++;
       if (count == this.numberOfTurns) this.state = BattleshipsState.Lost;
-      // if (this.hasWon()) this.state = BattleshipsState.Won;
     }
   }
 
@@ -120,9 +104,6 @@ export class Battleships {
 
     this.state = BattleshipsState.Playing;
     while (this.state != BattleshipsState.Exit) {
-      const shooter = this.playerManager.shooter;
-      const target = this.playerManager.target;
-      this.playerManager.displayMessage(`${shooter.id}'s turn`);
       // this.gameMode = await this.display.promptGameMode();
       this.resetBattlefield();
       this.draw(debug);

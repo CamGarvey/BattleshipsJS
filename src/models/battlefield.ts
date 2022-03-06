@@ -7,6 +7,7 @@ export interface IBattlefield {
   id: string;
   ships: IShip[];
   matrixShape: Vector;
+  allPositionsInMatrixShape: Vector[];
   enemyCoordinates: Vector[];
   createShips: () => void;
   remainingShips: () => IShip[];
@@ -14,6 +15,7 @@ export interface IBattlefield {
 
 interface IShipMeta {
   length: number;
+  sinkInOne?: boolean;
 }
 
 interface IBattlefieldOptions {
@@ -26,7 +28,7 @@ export class Battlefield implements IBattlefield {
   public id: string;
   public ships: IShip[];
   public matrixShape: Vector;
-  private allPositionsInMatrixShape: Vector[];
+  private _allPositionsInMatrixShape: Vector[];
   private shipMeta: IShipMeta[];
   enemyCoordinates: Vector[] = [];
 
@@ -34,9 +36,15 @@ export class Battlefield implements IBattlefield {
     this.id = id;
     this.matrixShape = matrixShape;
     this.shipMeta = ships;
-    this.allPositionsInMatrixShape = MatrixHelper.allPositionsInMatrixShape(
-      this.matrixShape
-    );
+  }
+
+  public get allPositionsInMatrixShape() {
+    if (this._allPositionsInMatrixShape == undefined) {
+      this._allPositionsInMatrixShape = MatrixHelper.allPositionsInMatrixShape(
+        this.matrixShape
+      );
+    }
+    return this._allPositionsInMatrixShape;
   }
 
   public allShipVectors(): Vector[] {
@@ -67,7 +75,8 @@ export class Battlefield implements IBattlefield {
   public createShips() {
     this.ships = [];
     this.shipMeta.forEach((option) => {
-      this.ships.push(this.createShip(option.length));
+      const sinkInOne = option.sinkInOne == undefined ? true : option.sinkInOne;
+      this.ships.push(this.createShip(option.length, sinkInOne));
     });
   }
 
@@ -78,7 +87,7 @@ export class Battlefield implements IBattlefield {
    * @param sinkInOneHit
    * @returns
    */
-  private createShip(lengthOfShip: number) {
+  private createShip(lengthOfShip: number, sinkInOne: boolean) {
     let tries = 0;
     const takenSpots = this.allShipVectors();
     while (
@@ -92,7 +101,7 @@ export class Battlefield implements IBattlefield {
       if (lengthOfShip == 1) {
         return new Ship({
           vectors: [head],
-          sinkInOneHit: true,
+          sinkInOneHit: sinkInOne,
         });
       }
       const potentialBodies: Vector[][] = MatrixHelper.findNeighbours(
@@ -111,7 +120,7 @@ export class Battlefield implements IBattlefield {
       if (validBodies.length != 0)
         return new Ship({
           vectors: [head, ...Marray.randomChoice(validBodies)],
-          sinkInOneHit: true,
+          sinkInOneHit: sinkInOne,
         });
       tries = tries + 1;
     }

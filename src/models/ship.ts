@@ -27,6 +27,7 @@ export class Ship implements IShip {
   }) {
     this._parts = vectors.map((x) => new ShipPart(x));
     this.sinkInOneHit = sinkInOneHit;
+    this._sunk = false;
   }
 
   public get sunk(): boolean {

@@ -2,6 +2,7 @@ import { Vector } from './types';
 
 export class Marray {
   public static randomChoice<T>(array: T[]): T {
+    if (!array.length) throw new Error('Can not choose from an empty array');
     return array[Math.floor(Math.random() * array.length)];
   }
 }

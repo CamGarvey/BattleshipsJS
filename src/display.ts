@@ -297,15 +297,15 @@ export class ConsoleDisplay implements IDisplay {
       {
         type: 'input',
         name: 'coordinates',
-        message: 'SHOOT! (x,y) ',
+        message: 'SHOOT! (e.g a2) ',
         validate: async (value: string) => {
           value = value.trim();
-          const re = new RegExp(/^([a-zA-Z]{1},\d+)$/);
+          const re = new RegExp(/^([a-zA-Z]{1}\d+)$/);
           if (!re.test(value)) return 'Invalid input';
-          const split = value.split(',');
+          const number = value.slice(1);
           let vector: Vector = [0, 0];
-          vector[0] = this.alphabet.indexOf(split[0]);
-          vector[1] = parseInt(split[1]);
+          vector[0] = this.alphabet.indexOf(value[0]);
+          vector[1] = parseInt(number);
           console.log(vector);
 
           if (MatrixHelper.isOutOfBounds(battlefield.matrixShape, vector))
@@ -321,10 +321,10 @@ export class ConsoleDisplay implements IDisplay {
         },
       },
     ]);
-    const split = response.coordinates.split(',');
+    const number = response.coordinates.slice(1);
     let vector: Vector = [0, 0];
-    vector[0] = this.alphabet.indexOf(split[0]);
-    vector[1] = parseInt(split[1]);
+    vector[0] = this.alphabet.indexOf(response.coordinates[0]);
+    vector[1] = parseInt(number);
     return vector as Vector;
   }
 

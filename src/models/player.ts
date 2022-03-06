@@ -4,6 +4,7 @@ import { Marray, MatrixHelper } from '../util';
 import { Battlefield, IBattlefield } from './battlefield';
 import { BattleshipsError } from './errors';
 import { Ship } from './ship';
+import { ShootMessage } from './shoot-message';
 import { ShootResponse } from './shoot-response';
 
 export interface IPlayer {
@@ -38,16 +39,25 @@ export class Player implements IPlayer {
     this.id = id;
     this.battlefield = battlefield;
     this.display = display;
+    this.previousCoordinates = [];
   }
 
-  promptCoordinates(battlefield: IBattlefield) {
-    return this.display.promptCoordinates(battlefield);
+  async promptCoordinates(battlefield: IBattlefield) {
+    const coordinates = await this.display.promptCoordinates(battlefield);
+    this.previousCoordinates.push(coordinates);
+    return coordinates;
   }
 
-  public handleTargetedResponse(response: ShootResponse): void {}
+  public handleTargetedResponse(response: ShootResponse): void {
+    if (response.message() == ShootMessage.Hit) {
+      this.display.displayMessage('You were hit!');
+    } else {
+      this.display.displayMessage('They missed!');
+    }
+  }
 
   public handleShooterResponse(response: ShootResponse): void {
-    this.display.displayMessage('Shooter bitch');
+    this.display.displayMessage(response.message());
   }
 
   public displayMessage(message: string): void {

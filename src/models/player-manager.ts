@@ -55,7 +55,7 @@ export class PlayerManager implements IPlayerManager {
 
   public endTurn(response: ShootResponse) {
     this.shooter.handleShooterResponse(response);
-    this.target.handleShooterResponse(response);
+    this.target.handleTargetedResponse(response);
     this.cyclePlayers();
   }
 
