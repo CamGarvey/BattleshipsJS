@@ -4,12 +4,13 @@ import { AIPlayer } from './models/ai-player';
 import { Battlefield } from './models/battlefield';
 import { Player } from './models/player';
 import { PlayerManager } from './models/player-manager';
+import { Vector } from './models/vector';
 
 const player1 = new Player({
   id: 'Cam',
   battlefield: new Battlefield({
     id: "Cam's Field",
-    matrixShape: [6, 6],
+    matrixShape: new Vector(8, 8),
     ships: [
       {
         length: 6,
@@ -27,7 +28,7 @@ const ai = new AIPlayer({
   id: 'RIVAL',
   battlefield: new Battlefield({
     id: "RIVAL's FIELD",
-    matrixShape: [6, 6],
+    matrixShape: new Vector(8, 8),
     ships: [
       {
         length: 6,

@@ -1,8 +1,8 @@
-import { Vector } from '../types';
 import { Marray, MatrixHelper } from '../util';
 import { IBattlefield } from './battlefield';
 import { IPlayer } from './player';
 import { ShootResponse } from './shoot-response';
+import { Vector } from './vector';
 
 interface AIPlayerOptions {
   id: string;
@@ -28,101 +28,92 @@ export class AIPlayer implements IPlayer {
     this.previousCoordinates = [];
   }
 
+  private find0DistancePath(battlefield: IBattlefield) {
+    const distance0Shots = this.shots
+      .filter((shot) => shot.distance == 0)
+      .sort((a, b) => a.distance - b.distance);
+
+    if (distance0Shots.length < 2) {
+      return;
+    }
+    const isHorizontal =
+      this.shots[0].coordinate.col == this.shots[1].coordinate.col;
+
+    const potentialCoords: Vector[] = [];
+    if (isHorizontal) {
+      const allShotsOnRow = distance0Shots.sort(
+        (a, b) => a.coordinate.col - b.coordinate.col
+      );
+      const left = allShotsOnRow[0].coordinate.col - 1;
+      const right = allShotsOnRow[allShotsOnRow.length - 1].coordinate.col + 1;
+
+      if (left >= 0) {
+        potentialCoords.push(
+          new Vector(left, distance0Shots[0].coordinate.row)
+        );
+      }
+      if (right < battlefield.matrixShape.col) {
+        potentialCoords.push(
+          new Vector(right, distance0Shots[0].coordinate.row)
+        );
+      }
+    } else {
+      const allShotsOnCol = distance0Shots.sort(
+        (a, b) => a.coordinate.row - b.coordinate.row
+      );
+      const top = allShotsOnCol[0].coordinate.row - 1;
+      const bottom = allShotsOnCol[allShotsOnCol.length - 1].coordinate.row + 1;
+
+      if (top >= 0) {
+        potentialCoords.push(new Vector(distance0Shots[0].coordinate.col, top));
+      }
+      if (bottom < battlefield.matrixShape.row) {
+        potentialCoords.push(
+          new Vector(distance0Shots[0].coordinate.col, bottom)
+        );
+      }
+    }
+    return potentialCoords.filter(
+      (c) => !this.shots.find((shot) => shot.coordinate.equals(c))
+    );
+  }
+
   promptCoordinates(battlefield: IBattlefield): Promise<Vector> {
     return new Promise((resolve, reject) => {
       setTimeout(() => {
         if (this.shots.length == 0) {
           const coord = Marray.randomChoice(
             battlefield.allPositionsInMatrixShape.filter(
-              (n) =>
-                !this.previousCoordinates.find(
-                  (pc) => pc[0] == n[0] && pc[1] == n[1]
-                )
+              (n) => !this.previousCoordinates.find((pc) => pc.equals(n))
             )
           );
           this.previousCoordinates.push(coord);
           resolve(coord);
         } else {
           // Work out a good coord to shoot at
-          this.shots.sort((a, b) => a.distance - b.distance);
+          const distance0Path = this.find0DistancePath(battlefield);
+          console.log(distance0Path);
 
-          if (this.shots.length > 1) {
-            // check if last two were hits
-            if (this.shots[0].distance == 0 && this.shots[1].distance == 0) {
-              // Last two shots were hit, that means we know it's angle
-              const testShot = this.shots[0];
+          if (distance0Path) {
+            const coord = Marray.randomChoice(distance0Path);
+            this.previousCoordinates.push(coord);
+            resolve(coord);
+          } else {
+            this.shots.sort((a, b) => a.distance - b.distance);
+            const neighbours = MatrixHelper.findNeighbours(
+              battlefield.matrixShape,
+              this.shots[0].coordinate,
+              this.shots[0].distance == 0 ? 1 : this.shots[0].distance
+            );
+            const furthestNeighbour = neighbours.map((x) => x[x.length - 1]);
 
-              // check if rows are the same, if they are then it's horizontal
-              const isHorizontal =
-                this.shots[0].coordinate[1] == this.shots[1].coordinate[1];
-              if (isHorizontal) {
-                const allShotsOnTheRow = this.shots
-                  .filter(
-                    (shot) =>
-                      shot.coordinate[1] == testShot.coordinate[1] &&
-                      shot.distance == 0
-                  )
-                  .sort((a, b) => a.coordinate[0] - b.coordinate[0]);
-                const potentialCoords = [];
-                const left = allShotsOnTheRow[0].coordinate[0] - 1;
-                const right =
-                  allShotsOnTheRow[allShotsOnTheRow.length - 1].coordinate[0] +
-                  1;
-                if (left >= 0) {
-                  potentialCoords.push([left, testShot.coordinate[1]]);
-                }
-                if (right < battlefield.matrixShape[0]) {
-                  potentialCoords.push([right, testShot.coordinate[1]]);
-                }
-                console.log({
-                  allShotsOnTheRow: allShotsOnTheRow.map((x) => x.coordinate),
-                  potentialCoords,
-                });
-                const coord = Marray.randomChoice(potentialCoords);
-                this.previousCoordinates.push(coord);
-                resolve(coord);
-              } else {
-                const allShotsOnTheCol = this.shots
-                  .filter(
-                    (shot) =>
-                      shot.coordinate[0] == testShot.coordinate[0] &&
-                      shot.distance == 0
-                  )
-                  .sort((a, b) => a.coordinate[1] - b.coordinate[1]);
-                const potentialCoords = [];
-                const top = allShotsOnTheCol[0].coordinate[1] - 1;
-                const bottom =
-                  allShotsOnTheCol[allShotsOnTheCol.length - 1].coordinate[1] +
-                  1;
-                if (top >= 0) {
-                  potentialCoords.push([testShot.coordinate[0], top]);
-                }
-                if (bottom < battlefield.matrixShape[1]) {
-                  potentialCoords.push([testShot.coordinate[1], bottom]);
-                }
-                console.log({ allShotsOnTheCol, potentialCoords });
-                const coord = Marray.randomChoice(potentialCoords);
-                this.previousCoordinates.push(coord);
-                resolve(coord);
-              }
-            }
+            const validNeighbours = furthestNeighbour.filter(
+              (n) => !this.previousCoordinates.find((pc) => pc.equals(n))
+            );
+            const coord = Marray.randomChoice(validNeighbours);
+            this.previousCoordinates.push(coord);
+            resolve(coord);
           }
-          const neighbours = MatrixHelper.findNeighbours(
-            battlefield.matrixShape,
-            this.shots[0].coordinate,
-            this.shots[0].distance == 0 ? 1 : this.shots[0].distance
-          );
-          const furthestNeighbour = neighbours.map((x) => x[x.length - 1]);
-
-          const validNeighbours = furthestNeighbour.filter(
-            (n) =>
-              !this.previousCoordinates.find(
-                (pc) => pc[0] == n[0] && pc[1] == n[1]
-              )
-          );
-          const coord = Marray.randomChoice(validNeighbours);
-          this.previousCoordinates.push(coord);
-          resolve(coord);
         }
       }, 500);
     });

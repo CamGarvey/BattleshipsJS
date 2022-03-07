@@ -3,12 +3,12 @@ import { ShootResponse } from './models/shoot-response';
 import { MatrixHelper, Marray } from './util';
 import { GameMode } from './models/game-mode';
 import { ConsoleDisplay, IDisplay } from './display';
-import { Vector } from './types';
 import { BattleshipsState } from './models/battleship-state';
 import { BattleshipsError } from './models/errors';
 import { IPlayerManager } from './models/player-manager';
 import { IPlayer, Player } from './models/player';
 import { IBattlefield } from './models/battlefield';
+import { Vector } from './models/vector';
 
 export class Battleships {
   private state: BattleshipsState;

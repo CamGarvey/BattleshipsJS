@@ -4,7 +4,7 @@ import { Battlefield, IBattlefield } from './models/battlefield';
 import { GameMode } from './models/game-mode';
 import { Ship } from './models/ship';
 import { ShootMessage } from './models/shoot-message';
-import { Vector } from './types';
+import { Vector } from './models/vector';
 import { MatrixHelper } from './util';
 
 export interface IDisplay {
@@ -58,31 +58,19 @@ export class ConsoleDisplay implements IDisplay {
   ) {
     const allShipParts = battlefield.ships.map((ship) => ship.parts).flat();
     const rows: any[][] = [];
-    for (let col = 0; col < battlefield.matrixShape[1]; col++) {
+    for (let col = 0; col < battlefield.matrixShape.row; col++) {
       let rowToDraw: any[] = [];
-      for (let row = 0; row < battlefield.matrixShape[0]; row++) {
-        const pos: Vector = [row, col];
-        if (
-          allShipParts.find(
-            (x) => x.vector[0] == pos[0] && x.vector[1] == pos[1]
-          )
-        ) {
-          if (
-            battlefield.enemyCoordinates.find(
-              (x) => x[0] == pos[0] && x[1] == pos[1]
-            )
-          ) {
+      for (let row = 0; row < battlefield.matrixShape.col; row++) {
+        const pos: Vector = new Vector(row, col);
+        if (allShipParts.find((x) => x.vector.equals(pos))) {
+          if (battlefield.enemyCoordinates.find((x) => x.equals(pos))) {
             rowToDraw.push(this.createHitShip());
             continue;
           }
           if (drawUnHitShips) rowToDraw.push(this.createShip());
           else rowToDraw.push(this.createOcean());
         } else {
-          if (
-            battlefield.enemyCoordinates.find(
-              (x) => x[0] == pos[0] && x[1] == pos[1]
-            )
-          )
+          if (battlefield.enemyCoordinates.find((x) => x.equals(pos)))
             rowToDraw.push(this.createHitOcean());
           else rowToDraw.push(this.createOcean());
         }
@@ -149,22 +137,22 @@ export class ConsoleDisplay implements IDisplay {
         : ownBattlefieldRows;
 
     const smallerField =
-      targetedBattlefield.matrixShape[0] <= ownBattlefield.matrixShape[0]
+      targetedBattlefield.matrixShape.col <= ownBattlefield.matrixShape.col
         ? targetedBattlefield
         : ownBattlefield;
 
     this.vPadding();
 
-    const gap = this.gaps ? targetedBattlefield.matrixShape[0] : 0;
+    const gap = this.gaps ? targetedBattlefield.matrixShape.col : 0;
 
     const lengthOfTargetedBattleField =
-      targetedBattlefield.matrixShape[0] * (this.resolution * 2) +
-      targetedBattlefield.matrixShape[0] +
+      targetedBattlefield.matrixShape.col * (this.resolution * 2) +
+      targetedBattlefield.matrixShape.col +
       2 +
       gap;
 
     const lengthOfOwnBattleField =
-      ownBattlefield.matrixShape[0] * (this.resolution * 2) + 5 + gap;
+      ownBattlefield.matrixShape.col * (this.resolution * 2) + 5 + gap;
 
     const spaceBetweenBattlefields = 10;
     const spaceBetweenBattlefieldsDrawn = this.hPadding(
@@ -320,29 +308,30 @@ export class ConsoleDisplay implements IDisplay {
           const re = new RegExp(/^([a-zA-Z]{1}\d+)$/);
           if (!re.test(value)) return 'Invalid input';
           const number = value.slice(1);
-          let vector: Vector = [0, 0];
-          vector[0] = this.alphabet.indexOf(value[0]);
-          vector[1] = parseInt(number);
-          console.log(vector);
+          let vector: Vector = new Vector(
+            this.alphabet.indexOf(value[0]),
+            parseInt(number)
+          );
 
           if (MatrixHelper.isOutOfBounds(battlefield.matrixShape, vector))
             return 'Out of bounds!';
           if (
-            battlefield.enemyCoordinates.find(
-              (coordinate) =>
-                coordinate[0] == vector[0] && coordinate[1] == vector[1]
+            battlefield.enemyCoordinates.find((coordinate) =>
+              coordinate.equals(vector)
             )
-          )
+          ) {
             return 'Already shot there!';
+          }
           return true;
         },
       },
     ]);
     const number = response.coordinates.slice(1);
-    let vector: Vector = [0, 0];
-    vector[0] = this.alphabet.indexOf(response.coordinates[0]);
-    vector[1] = parseInt(number);
-    return vector as Vector;
+    let vector: Vector = new Vector(
+      this.alphabet.indexOf(response.coordinates[0]),
+      parseInt(number)
+    );
+    return vector;
   }
 
   public displayMessage(message: string): void {

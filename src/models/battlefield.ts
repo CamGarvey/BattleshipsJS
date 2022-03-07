@@ -1,7 +1,7 @@
-import { Vector } from '../types';
 import { Marray, MatrixHelper } from '../util';
 import { BattleshipsError } from './errors';
 import { IShip, Ship } from './ship';
+import { Vector } from './vector';
 
 export interface IBattlefield {
   id: string;
@@ -64,7 +64,7 @@ export class Battlefield implements IBattlefield {
     takenSpots: Vector[] = []
   ): Vector {
     const availablePositions = allPositionsInMatrixShape.filter((vec) => {
-      return !takenSpots.find((x) => x[0] == vec[0] && x[1] == vec[1]);
+      return !takenSpots.find((x) => x.equals(vec));
     });
     if (availablePositions.length == 0) {
       throw new BattleshipsError('Too many ships');
@@ -92,7 +92,7 @@ export class Battlefield implements IBattlefield {
     const takenSpots = this.allShipVectors();
     while (
       tries <
-      this.matrixShape[0] * this.matrixShape[1] - takenSpots.length
+      this.matrixShape.col * this.matrixShape.row - takenSpots.length
     ) {
       const head = this.pickShipHead(
         this.allPositionsInMatrixShape,
@@ -112,9 +112,7 @@ export class Battlefield implements IBattlefield {
       // filter out bodies that have positions taken
       const validBodies = potentialBodies.filter((body) => {
         // make sure that bodies are not in take positions
-        return !body.find((vector) =>
-          takenSpots.find((x) => x[0] == vector[0] && x[1] == vector[1])
-        );
+        return !body.find((vector) => takenSpots.find((x) => x.equals(vector)));
       });
 
       if (validBodies.length != 0)

@@ -1,4 +1,4 @@
-import { Vector } from '../types';
+import { Vector } from './vector';
 
 class ShipPart {
   public hit: boolean;
@@ -55,8 +55,8 @@ export class Ship implements IShip {
     let closest: number;
     this._parts.forEach((part) => {
       const distance =
-        Math.abs(part.vector[0] - target[0]) +
-        Math.abs(part.vector[1] - target[1]);
+        Math.abs(part.vector.col - target.col) +
+        Math.abs(part.vector.row - target.row);
       if (distance == 0) {
         part.hit = true;
         if (this.sinkInOneHit || this.hitParts().length == this._parts.length) {

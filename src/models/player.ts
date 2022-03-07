@@ -1,11 +1,11 @@
 import { IDisplay } from '../display';
-import { Vector } from '../types';
 import { Marray, MatrixHelper } from '../util';
 import { Battlefield, IBattlefield } from './battlefield';
 import { BattleshipsError } from './errors';
 import { Ship } from './ship';
 import { ShootMessage } from './shoot-message';
 import { ShootResponse } from './shoot-response';
+import { Vector } from './vector';
 
 export interface IPlayer {
   id: string;
@@ -31,7 +31,7 @@ interface PlayerOptions {
 
 export class Player implements IPlayer {
   id: string;
-  isDead: boolean;
+  _isDead: boolean;
   private previousCoordinates: Vector[];
   public battlefield: IBattlefield;
   private display: IDisplay;
@@ -41,6 +41,11 @@ export class Player implements IPlayer {
     this.battlefield = battlefield;
     this.display = display;
     this.previousCoordinates = [];
+    this._isDead = false;
+  }
+
+  public get isDead() {
+    return this._isDead;
   }
 
   async promptCoordinates(battlefield: IBattlefield) {
@@ -52,6 +57,7 @@ export class Player implements IPlayer {
   public handleTargetedResponse(response: ShootResponse): void {
     if (response.message() == ShootMessage.Hit) {
       this.display.displayMessage('You were hit!');
+      this._isDead = this.battlefield.remainingShips().length == 0;
     } else {
       this.display.displayMessage('They missed!');
     }
