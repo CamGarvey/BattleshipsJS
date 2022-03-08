@@ -1,26 +1,12 @@
-import { IDisplay } from '../display';
 import { Marray, MatrixHelper } from '../util';
-import { Battlefield, IBattlefield } from './battlefield';
-import { BattleshipsError } from './errors';
-import { Ship } from './ship';
-import { ShootMessage } from './shoot-message';
-import { ShootResponse } from './shoot-response';
-import { Vector } from './vector';
-
-export interface IPlayer {
-  id: string;
-  isDead: boolean;
-  battlefield: IBattlefield;
-  promptCoordinates(battlefield: IBattlefield): Promise<Vector>;
-  promptPlayAgain(): Promise<boolean>;
-  handleTargetedResponse(response: ShootResponse): void;
-  handleShooterResponse(response: ShootResponse): void;
-  displayMessage(message: string): void;
-  displayBattlefields(
-    targetedBattlefield: IBattlefield,
-    ownBattlefield: IBattlefield
-  ): void;
-}
+import { BattleshipsError } from '../models/errors';
+import { Ship } from '../ship/ship';
+import { ShootMessage } from '../models/shoot-message';
+import { ShootResponse } from '../models/shoot-response';
+import { Vector } from '../models/vector';
+import { IBattlefield } from '../battlefield/battlefield.interface';
+import { IPlayer } from './player.interface';
+import { IDisplay } from '../display/display.interface';
 
 interface PlayerOptions {
   id: string;
@@ -73,9 +59,14 @@ export class Player implements IPlayer {
 
   public displayBattlefields(
     targetedBattlefield: IBattlefield,
-    ownBattlefield: IBattlefield
+    ownBattlefield: IBattlefield,
+    drawAllShips = false
   ): void {
-    this.display.displayBattlefields(targetedBattlefield, ownBattlefield);
+    this.display.displayBattlefields(
+      targetedBattlefield,
+      ownBattlefield,
+      drawAllShips
+    );
   }
 
   public promptPlayAgain() {

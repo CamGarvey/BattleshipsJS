@@ -1,30 +1,12 @@
 import * as chalk from 'chalk';
 import * as inquirer from 'inquirer';
-import { Battlefield, IBattlefield } from './models/battlefield';
-import { GameMode } from './models/game-mode';
-import { Ship } from './models/ship';
-import { ShootMessage } from './models/shoot-message';
-import { Vector } from './models/vector';
-import { MatrixHelper } from './util';
-
-export interface IDisplay {
-  displayBattlefields: (
-    targetedBattlefield: IBattlefield,
-    ownBattlefield: IBattlefield
-  ) => void;
-  displayTitle: () => void;
-  promptBool(message: string): Promise<boolean>;
-  promptGameMode: () => Promise<GameMode>;
-  promptCoordinates: (battlefield: IBattlefield) => Promise<Vector>;
-  displayShootMessage: (message: ShootMessage) => void;
-  displayResult: (hasWon: boolean) => void;
-  displayRemaining: (
-    ships: Ship[],
-    turnsHad: number,
-    turnsAllowed: number
-  ) => void;
-  displayMessage(message: string): void;
-}
+import { GameMode } from '../models/game-mode';
+import { Ship } from '../ship/ship';
+import { ShootMessage } from '../models/shoot-message';
+import { Vector } from '../models/vector';
+import { MatrixHelper } from '../util';
+import { IBattlefield } from '../battlefield/battlefield.interface';
+import { IDisplay } from './display.interface';
 
 export enum ConsoleResolution {
   Small = 1,
@@ -122,13 +104,14 @@ export class ConsoleDisplay implements IDisplay {
 
   public displayBattlefields(
     targetedBattlefield: IBattlefield,
-    ownBattlefield: IBattlefield
+    ownBattlefield: IBattlefield,
+    drawAllShips = false
   ): void {
     // this.drawFieldTitle(battlefield);
     const ownBattlefieldRows = this.createBattlefield(ownBattlefield, true);
     const targetedBattlefieldRows = this.createBattlefield(
       targetedBattlefield,
-      false
+      drawAllShips
     );
 
     const largerField =

@@ -1,14 +1,12 @@
-import { IShip, Ship } from './models/ship';
 import { ShootResponse } from './models/shoot-response';
 import { MatrixHelper, Marray } from './util';
 import { GameMode } from './models/game-mode';
-import { ConsoleDisplay, IDisplay } from './display';
 import { BattleshipsState } from './models/battleship-state';
 import { BattleshipsError } from './models/errors';
-import { IPlayerManager } from './models/player-manager';
-import { IPlayer, Player } from './models/player';
-import { IBattlefield } from './models/battlefield';
 import { Vector } from './models/vector';
+import { IPlayerManager } from './player-manager/player-manager.interface';
+import { IBattlefield } from './battlefield/battlefield.interface';
+import { IShip } from './ship/ship.interface';
 
 export class Battleships {
   private state: BattleshipsState;

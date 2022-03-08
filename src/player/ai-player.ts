@@ -1,8 +1,8 @@
 import { Marray, MatrixHelper } from '../util';
-import { IBattlefield } from './battlefield';
-import { IPlayer } from './player';
-import { ShootResponse } from './shoot-response';
-import { Vector } from './vector';
+import { ShootResponse } from '../models/shoot-response';
+import { Vector } from '../models/vector';
+import { IBattlefield } from '../battlefield/battlefield.interface';
+import { IPlayer } from './player.interface';
 
 interface AIPlayerOptions {
   id: string;
@@ -28,13 +28,13 @@ export class AIPlayer implements IPlayer {
     this.previousCoordinates = [];
   }
 
-  private find0DistancePath(battlefield: IBattlefield) {
+  private find0DistancePath(battlefield: IBattlefield): Vector[] {
     const distance0Shots = this.shots
       .filter((shot) => shot.distance == 0)
       .sort((a, b) => a.distance - b.distance);
 
     if (distance0Shots.length < 2) {
-      return;
+      return [];
     }
     const isHorizontal =
       this.shots[0].coordinate.col == this.shots[1].coordinate.col;
@@ -94,7 +94,7 @@ export class AIPlayer implements IPlayer {
           const distance0Path = this.find0DistancePath(battlefield);
           console.log(distance0Path);
 
-          if (distance0Path) {
+          if (distance0Path?.length != 0) {
             const coord = Marray.randomChoice(distance0Path);
             this.previousCoordinates.push(coord);
             resolve(coord);

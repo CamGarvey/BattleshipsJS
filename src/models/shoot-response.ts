@@ -1,5 +1,4 @@
-import { IPlayer } from './player';
-import { IShip, Ship } from './ship';
+import { IShip } from '../ship/ship.interface';
 import { ShootMessage } from './shoot-message';
 
 export class ShootResponse {

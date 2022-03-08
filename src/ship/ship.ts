@@ -1,31 +1,21 @@
-import { Vector } from './vector';
-
-class ShipPart {
-  public hit: boolean;
-  constructor(public vector: Vector) {}
-}
-
-export interface IShip {
-  sunk: boolean;
-  parts: ShipPart[];
-  checkHit: (vector: Vector) => number;
-  allVectors: () => Vector[];
-}
+import { Vector } from '../models/vector';
+import { IShipPart } from './ship-parts.interface';
+import { IShip } from './ship.interface';
 
 export class Ship implements IShip {
   private sinkInOneHit: boolean;
   // lol private parts
-  private _parts: ShipPart[];
+  private _parts: IShipPart[];
   private _sunk: boolean;
 
   constructor({
-    vectors,
+    parts,
     sinkInOneHit = true,
   }: {
-    vectors: Vector[];
+    parts: IShipPart[];
     sinkInOneHit: boolean;
   }) {
-    this._parts = vectors.map((x) => new ShipPart(x));
+    this._parts = parts;
     this.sinkInOneHit = sinkInOneHit;
     this._sunk = false;
   }
@@ -34,7 +24,7 @@ export class Ship implements IShip {
     return this._sunk;
   }
 
-  public get parts(): ShipPart[] {
+  public get parts(): IShipPart[] {
     return this._parts;
   }
 

@@ -1,27 +1,17 @@
 import { Marray, MatrixHelper } from '../util';
-import { BattleshipsError } from './errors';
-import { IShip, Ship } from './ship';
-import { Vector } from './vector';
+import { BattleshipsError } from '../models/errors';
+import { Vector } from '../models/vector';
+import { IBattlefield } from './battlefield.interface';
+import { Ship } from '../ship/ship';
+import { IShip } from '../ship/ship.interface';
+import { IShipMeta } from '../ship/ship-meta.interface';
+import { IShipGenerator } from '../ship/ship-generator/ship-generator.interface';
 
-export interface IBattlefield {
-  id: string;
-  ships: IShip[];
-  matrixShape: Vector;
-  allPositionsInMatrixShape: Vector[];
-  enemyCoordinates: Vector[];
-  createShips: () => void;
-  remainingShips: () => IShip[];
-}
-
-interface IShipMeta {
-  length: number;
-  sinkInOne?: boolean;
-}
-
-interface IBattlefieldOptions {
+interface BattlefieldOptions {
   id: string;
   matrixShape: Vector;
   ships: IShipMeta[];
+  shipGenerator: IShipGenerator;
 }
 
 export class Battlefield implements IBattlefield {
@@ -31,11 +21,13 @@ export class Battlefield implements IBattlefield {
   private _allPositionsInMatrixShape: Vector[];
   private shipMeta: IShipMeta[];
   enemyCoordinates: Vector[] = [];
+  private shipGenerator: IShipGenerator;
 
-  constructor({ id, matrixShape, ships }: IBattlefieldOptions) {
+  constructor({ id, matrixShape, ships, shipGenerator }: BattlefieldOptions) {
     this.id = id;
     this.matrixShape = matrixShape;
     this.shipMeta = ships;
+    this.shipGenerator = shipGenerator;
   }
 
   public get allPositionsInMatrixShape() {

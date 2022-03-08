@@ -1,17 +1,8 @@
 import { Marray } from '../util';
-import { BattleshipsState } from './battleship-state';
-import { IPlayer } from './player';
-import { ShootResponse } from './shoot-response';
-
-export interface IPlayerManager {
-  players: IPlayer[];
-  shooter: IPlayer;
-  target: IPlayer;
-  init(): void;
-  addPlayer(player: IPlayer): void;
-  endTurn(response: ShootResponse): BattleshipsState;
-  displayMessage(message: string): void;
-}
+import { BattleshipsState } from '../models/battleship-state';
+import { ShootResponse } from '../models/shoot-response';
+import { IPlayerManager } from './player-manager.interface';
+import { IPlayer } from '../player/player.interface';
 
 interface PlayerManagerOptions {
   players: IPlayer[];
@@ -71,16 +62,31 @@ export class PlayerManager implements IPlayerManager {
     this._target = this.getNextPlayer(this.target);
   }
 
+  private showBattlefields() {
+    this.shooter.displayBattlefields(
+      this.target.battlefield,
+      this.shooter.battlefield,
+      true
+    );
+    this.target.displayBattlefields(
+      this.shooter.battlefield,
+      this.target.battlefield,
+      true
+    );
+  }
+
   public endTurn(response: ShootResponse) {
     this.playCount++;
     this.shooter.handleShooterResponse(response);
     this.target.handleTargetedResponse(response);
     if (this.target.isDead) {
+      this.showBattlefields();
       this.target.displayMessage('You Lose!');
       this.shooter.displayMessage('You Win!');
       return BattleshipsState.GameOver;
     }
     if (this.playCount == this.numberOfTurns * this.players.length) {
+      this.showBattlefields();
       this.displayMessage('No winners!');
       return BattleshipsState.GameOver;
     }
