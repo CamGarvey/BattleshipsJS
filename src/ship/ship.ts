@@ -1,37 +1,30 @@
-import { Vector } from '../types';
-
-class ShipPart {
-  public hit: boolean;
-  constructor(public vector: Vector) {}
-}
-
-interface IShip {
-  checkHit: (vector: Vector) => number;
-  allVectors: () => Vector[];
-}
+import { Vector } from '../models/vector';
+import { IShipPart } from './ship-parts.interface';
+import { IShip } from './ship.interface';
 
 export class Ship implements IShip {
   private sinkInOneHit: boolean;
   // lol private parts
-  private _parts: ShipPart[];
+  private _parts: IShipPart[];
   private _sunk: boolean;
 
   constructor({
-    vectors,
+    parts,
     sinkInOneHit = true,
   }: {
-    vectors: Vector[];
+    parts: IShipPart[];
     sinkInOneHit: boolean;
   }) {
-    this._parts = vectors.map((x) => new ShipPart(x));
+    this._parts = parts;
     this.sinkInOneHit = sinkInOneHit;
+    this._sunk = false;
   }
 
   public get sunk(): boolean {
     return this._sunk;
   }
 
-  public get parts(): ShipPart[] {
+  public get parts(): IShipPart[] {
     return this._parts;
   }
 
@@ -52,8 +45,8 @@ export class Ship implements IShip {
     let closest: number;
     this._parts.forEach((part) => {
       const distance =
-        Math.abs(part.vector[0] - target[0]) +
-        Math.abs(part.vector[1] - target[1]);
+        Math.abs(part.vector.col - target.col) +
+        Math.abs(part.vector.row - target.row);
       if (distance == 0) {
         part.hit = true;
         if (this.sinkInOneHit || this.hitParts().length == this._parts.length) {

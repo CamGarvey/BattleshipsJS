@@ -1,11 +1,13 @@
-import { Ship } from './ship';
+import { IShip } from '../ship/ship.interface';
 import { ShootMessage } from './shoot-message';
 
 export class ShootResponse {
   distance: number;
+  sunk: boolean;
 
-  constructor(distance: number, private ship: Ship) {
+  constructor(distance: number, ship: IShip) {
     this.distance = Math.abs(distance);
+    this.sunk = ship.sunk;
   }
 
   public message() {
