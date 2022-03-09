@@ -1,8 +1,5 @@
 import * as chalk from 'chalk';
 import * as inquirer from 'inquirer';
-import { GameMode } from '../models/game-mode';
-import { Ship } from '../ship/ship';
-import { ShootMessage } from '../models/shoot-message';
 import { Vector } from '../models/vector';
 import { MatrixHelper } from '../util';
 import { IBattlefield } from '../battlefield/battlefield.interface';
@@ -16,8 +13,8 @@ export enum ConsoleResolution {
 }
 
 export class ConsoleDisplay implements IDisplay {
-  _xRes: number;
-  protected resolution: ConsoleResolution;
+  _xResolution: number;
+  protected vResolution: ConsoleResolution;
   protected gaps: boolean;
   protected alphabet = 'abcdefghijklmnopqrstuvwxyz';
 
@@ -30,58 +27,137 @@ export class ConsoleDisplay implements IDisplay {
       gaps?: boolean;
     } = { resolution: ConsoleResolution.Medium, gaps: false }
   ) {
-    this.resolution = resolution;
+    this.vResolution = resolution;
     this.gaps = gaps;
   }
 
+  /**
+   *
+   * @param battlefield
+   * @param drawUnHitShips Set true to draw unhit ships
+   * @returns
+   */
   private createBattlefield(
     battlefield: IBattlefield,
     drawUnHitShips: boolean
   ) {
+    // Get all ship parts
     const allShipParts = battlefield.ships.map((ship) => ship.parts).flat();
     const rows: any[][] = [];
+
+    // Loop over all of the vectors in the matrix
     for (let col = 0; col < battlefield.matrixShape.row; col++) {
       let rowToDraw: any[] = [];
       for (let row = 0; row < battlefield.matrixShape.col; row++) {
-        const pos: Vector = new Vector(row, col);
-        if (allShipParts.find((x) => x.vector.equals(pos))) {
-          if (battlefield.enemyCoordinates.find((x) => x.equals(pos))) {
+        const currentVector = new Vector(row, col);
+
+        // Check if the current vector is a ship
+        const isShipVector = allShipParts.find((x) =>
+          x.vector.equals(currentVector)
+        );
+        if (isShipVector) {
+          // The Vector is a ship
+          // Check if the vector in the list of enemyCoordinate / is it a "hit" ship
+          const isHitShipVector = battlefield.enemyCoordinates.find((x) =>
+            x.equals(currentVector)
+          );
+
+          if (isHitShipVector) {
             rowToDraw.push(this.createHitShip());
             continue;
           }
-          if (drawUnHitShips) rowToDraw.push(this.createShip());
-          else rowToDraw.push(this.createOcean());
+
+          if (drawUnHitShips) {
+            rowToDraw.push(this.createShip());
+          } else {
+            // The vector is an unhit ship but going to draw it as a ocean
+            rowToDraw.push(this.createOcean());
+          }
         } else {
-          if (battlefield.enemyCoordinates.find((x) => x.equals(pos)))
+          const isEnemyVector = battlefield.enemyCoordinates.find((x) =>
+            x.equals(currentVector)
+          );
+
+          if (isEnemyVector) {
+            // The vector is a hit ocean
             rowToDraw.push(this.createHitOcean());
-          else rowToDraw.push(this.createOcean());
+          } else {
+            // The vector is an unhit oecean
+            rowToDraw.push(this.createOcean());
+          }
         }
       }
       rows.push(rowToDraw);
     }
-    return this.doTheThing(rows);
+    return this.translateToConsole(rows);
   }
 
-  private doTheThing(rows: string[][]): string[] {
+  private translateToConsole(rows: string[][]): string[] {
+    // Gap between the number col and battlefield
     const numberColGap = this.hPadding(2, { draw: false });
-    const lines = [`${numberColGap + this.createTop(rows[0].length)}`];
-    rows.forEach((row, idx) => {
-      if (this.gaps) lines.push(...this.vPadding(1, { draw: false }));
 
-      for (let index = 0; index < this.resolution; index++) {
-        const line = [];
-        if (index == Math.floor(this.resolution / 2)) {
-          line.push(idx + this.hPadding(1, { draw: false }));
+    const lines = [];
+
+    // Create the top row which contains the letters
+    const topRow = `${numberColGap + this.createTop(rows[0].length)}`;
+    lines.push(topRow);
+
+    rows.forEach((row, idx) => {
+      if (this.gaps) {
+        // Add vertical space/padding between row
+        // _
+        // X
+        // X
+        // X
+        lines.push(...this.vPadding(1, { draw: false }));
+      }
+
+      // Executing the following for vResolution to gain vertical size
+      // e.g a vResolution of 3
+      //
+      // X -> X
+      //      X
+      //      X
+      //
+      for (let index = 0; index < this.vResolution; index++) {
+        const currentLine = [];
+
+        const isCenterOfResolution = index == Math.floor(this.vResolution / 2);
+        if (isCenterOfResolution) {
+          // Draw the row number
+          currentLine.push(idx + this.hPadding(1, { draw: false }));
         } else {
-          line.push(this.hPadding(2, { draw: false }));
+          // Add horizontal padding to push the battlefield out far enough
+          // to accommodate for the row numbers that get added above
+          currentLine.push(this.hPadding(2, { draw: false }));
         }
+
+        // Loop over each col in row
         row.forEach((col) => {
-          for (let index = 0; index < this.xRes; index++) {
-            line.push(col);
+          // Adding the col for xRes to gain horizontal size
+          // e.g a Resolution of 3
+          //
+          // X -> XXX
+          //
+          // Combining both X & Y resolutions and you get
+          //
+          // X -> XXX
+          //      XXX
+          //      XXX
+          //
+          for (let index = 0; index < this.xResolution; index++) {
+            currentLine.push(col);
           }
-          if (this.gaps) line.push(this.hPadding(1, { draw: false }));
+
+          if (this.gaps) {
+            // After adding all of the cols
+            // add a gap
+            //
+            // XXX|
+            currentLine.push(this.hPadding(1, { draw: false }));
+          }
         });
-        lines.push(line.join(''));
+        lines.push(currentLine.join(''));
       }
     });
     return lines;
@@ -103,7 +179,6 @@ export class ConsoleDisplay implements IDisplay {
     ownBattlefield: IBattlefield,
     drawAllShips = false
   ): void {
-    // this.drawFieldTitle(battlefield);
     const ownBattlefieldRows = this.createBattlefield(ownBattlefield, true);
     const targetedBattlefieldRows = this.createBattlefield(
       targetedBattlefield,
@@ -125,13 +200,13 @@ export class ConsoleDisplay implements IDisplay {
     const gap = this.gaps ? targetedBattlefield.matrixShape.col : 0;
 
     const lengthOfTargetedBattleField =
-      targetedBattlefield.matrixShape.col * (this.resolution * 2) +
+      targetedBattlefield.matrixShape.col * (this.vResolution * 2) +
       targetedBattlefield.matrixShape.col +
       2 +
       gap;
 
     const lengthOfOwnBattleField =
-      ownBattlefield.matrixShape.col * (this.resolution * 2) + 5 + gap;
+      ownBattlefield.matrixShape.col * (this.vResolution * 2) + 5 + gap;
 
     const spaceBetweenBattlefields = 10;
     const spaceBetweenBattlefieldsDrawn = this.hPadding(
@@ -206,7 +281,7 @@ export class ConsoleDisplay implements IDisplay {
 
   private createTop(topLength: number): string {
     const spaces = Array.from(
-      { length: Math.floor(this.xRes / 2) },
+      { length: Math.floor(this.xResolution / 2) },
       () => ' '
     ).join('');
 
@@ -217,16 +292,16 @@ export class ConsoleDisplay implements IDisplay {
     return alph.join(this.gaps ? ' ' : '');
   }
 
-  private get xRes() {
-    if (this._xRes) return this._xRes;
-    if (this.resolution == 1) {
-      this._xRes = 1;
-      return this._xRes;
+  private get xResolution() {
+    if (this._xResolution) return this._xResolution;
+    if (this.vResolution == 1) {
+      this._xResolution = 1;
+      return this._xResolution;
     }
-    let res = Math.ceil(this.resolution * 2);
+    let res = Math.ceil(this.vResolution * 2);
     res += res % 2 == 0 ? 1 : 0;
-    this._xRes = res;
-    return this._xRes;
+    this._xResolution = res;
+    return this._xResolution;
   }
 
   private vPadding(n = 1, { draw }: { draw: boolean } = { draw: true }) {
