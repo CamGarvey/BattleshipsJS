@@ -1,9 +1,5 @@
-import { ShootResponse } from './models/shoot-response';
 import { BattleshipsState } from './models/battleship-state';
-import { Vector } from './models/vector';
 import { IPlayerManager } from './player-manager/player-manager.interface';
-import { IBattlefield } from './battlefield/battlefield.interface';
-import { IShip } from './ship/ship.interface';
 
 export class Battleships {
   private state: BattleshipsState;

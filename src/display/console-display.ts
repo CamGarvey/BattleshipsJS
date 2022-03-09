@@ -81,7 +81,6 @@ export class ConsoleDisplay implements IDisplay {
           }
           if (this.gaps) line.push(this.hPadding(1, { draw: false }));
         });
-        // if (this.gaps) line.push(this.hPadding(1, { draw: false }));
         lines.push(line.join(''));
       }
     });
@@ -248,18 +247,6 @@ export class ConsoleDisplay implements IDisplay {
     return pad;
   }
 
-  async promptGameMode(): Promise<GameMode> {
-    const response = await inquirer.prompt([
-      {
-        name: 'mode',
-        type: 'list',
-        message: 'Game Mode?',
-        choices: [GameMode.Easy, GameMode.Hard],
-      },
-    ]);
-    return response['mode'];
-  }
-
   /**
    * Prompt user for the target they wish to shoot
    */
@@ -271,16 +258,24 @@ export class ConsoleDisplay implements IDisplay {
         message: 'SHOOT! (e.g a2) ',
         validate: async (value: string) => {
           value = value.trim();
+
+          // Test value is made up of a single letter and number(s)
+          // e.g a2, b3, b10
           const re = new RegExp(/^([a-zA-Z]{1}\d+)$/);
           if (!re.test(value)) return 'Invalid input';
-          const number = value.slice(1);
-          let vector: Vector = new Vector(
-            this.alphabet.indexOf(value[0]),
-            parseInt(number)
-          );
 
-          if (MatrixHelper.isOutOfBounds(battlefield.matrixShape, vector))
+          const number = parseInt(value.slice(1));
+          const letter = value[0];
+          const letterIndex = this.alphabet.indexOf(letter);
+
+          const vector = new Vector(letterIndex, number);
+
+          // Check vector is within bounds of the battlefield matrix shape
+          if (MatrixHelper.isOutOfBounds(battlefield.matrixShape, vector)) {
             return 'Out of bounds!';
+          }
+
+          // Check that the battlefield doesn't contain vector
           if (
             battlefield.enemyCoordinates.find((coordinate) =>
               coordinate.equals(vector)
@@ -302,28 +297,5 @@ export class ConsoleDisplay implements IDisplay {
 
   public displayMessage(message: string): void {
     console.log(message);
-  }
-
-  public displayShootMessage(message: ShootMessage): void {
-    console.log(message);
-  }
-
-  public displayResult(hasWon: boolean): void {
-    if (hasWon) console.log('You win!');
-    else console.log('You lose!');
-  }
-
-  public displayTitle(): void {
-    console.log(chalk.cyanBright('BattleshipsJS\n'));
-  }
-
-  public displayRemaining(
-    ships: Ship[],
-    turnsHad: number,
-    turnsAllowed: number
-  ): void {
-    const remaining = ships.filter((ship) => !ship.sunk).length;
-    console.log(`Ships remaining: ${remaining}/${ships.length}`);
-    console.log(`Turns remaining: ${turnsAllowed - turnsHad}/${turnsAllowed}`);
   }
 }

@@ -1,2 +1,3 @@
 # BattleshipsJS
+
 CLI Battleships Game

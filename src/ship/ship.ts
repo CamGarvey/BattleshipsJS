@@ -38,15 +38,16 @@ export class Ship implements IShip {
 
   /**
    * Checks if hit and returns distance
-   * @param target
-   * @returns
+   * @param coordinates
+   * @returns distance from closest ship
    */
-  public checkHit(target: Vector) {
+  public checkHit(coordinates: Vector) {
     let closest: number;
     this._parts.forEach((part) => {
       const distance =
-        Math.abs(part.vector.col - target.col) +
-        Math.abs(part.vector.row - target.row);
+        Math.abs(part.vector.col - coordinates.col) +
+        Math.abs(part.vector.row - coordinates.row);
+
       if (distance == 0) {
         part.hit = true;
         if (this.sinkInOneHit || this.hitParts().length == this._parts.length) {
