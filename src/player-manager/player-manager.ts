@@ -17,16 +17,16 @@ export class PlayerManager implements IPlayerManager {
   private playCount: number;
   private numberOfTurns: number;
 
-  private lastPlayer: IPlayer;
-
   constructor({ players, numberOfTurns = 20 }: PlayerManagerOptions) {
     this._players = players;
     this.numberOfTurns = numberOfTurns;
   }
 
-  init(): void {
+  reset(): void {
     this.playCount = 0;
-    this.players.forEach((p) => p.battlefield.createShips());
+    this._shooter = undefined;
+    this._target = undefined;
+    this.players.forEach((p) => p.reset());
   }
 
   public get players() {
@@ -96,5 +96,11 @@ export class PlayerManager implements IPlayerManager {
 
   public displayMessage(message: string): void {
     this.players.forEach((player) => player.displayMessage(message));
+  }
+
+  async promptPlayAgain() {
+    return (
+      await Promise.all(this.players.map((p) => p.promptPlayAgain()))
+    ).every((e) => e);
   }
 }

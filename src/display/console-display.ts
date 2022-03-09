@@ -89,17 +89,14 @@ export class ConsoleDisplay implements IDisplay {
   }
 
   public async promptBool(message: string) {
-    return inquirer
-      .prompt([
-        {
-          name: 'question',
-          message: message,
-          type: 'confirm',
-        },
-      ])
-      .then((value) => {
-        return value.question == 'Yes';
-      });
+    const response = await inquirer.prompt([
+      {
+        name: 'confirm',
+        message,
+        type: 'confirm',
+      },
+    ]);
+    return response.confirm;
   }
 
   public displayBattlefields(
@@ -249,20 +246,6 @@ export class ConsoleDisplay implements IDisplay {
     const pad = Array.from({ length: n }, () => ' ').join('');
     if (draw) console.log(pad);
     return pad;
-  }
-
-  async promptPlayAgain() {
-    return inquirer
-      .prompt([
-        {
-          name: 'playAgain',
-          message: 'Play Again?',
-          type: 'confirm',
-        },
-      ])
-      .then((value) => {
-        return value.message == 'Yes';
-      });
   }
 
   async promptGameMode(): Promise<GameMode> {

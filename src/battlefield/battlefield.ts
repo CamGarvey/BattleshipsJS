@@ -5,13 +5,12 @@ import { IBattlefield } from './battlefield.interface';
 import { Ship } from '../ship/ship';
 import { IShip } from '../ship/ship.interface';
 import { IShipMeta } from '../ship/ship-meta.interface';
-import { IShipGenerator } from '../ship/ship-generator/ship-generator.interface';
+import { ShipPart } from '../ship/ship-parts';
 
 interface BattlefieldOptions {
   id: string;
   matrixShape: Vector;
   ships: IShipMeta[];
-  shipGenerator: IShipGenerator;
 }
 
 export class Battlefield implements IBattlefield {
@@ -20,14 +19,21 @@ export class Battlefield implements IBattlefield {
   public matrixShape: Vector;
   private _allPositionsInMatrixShape: Vector[];
   private shipMeta: IShipMeta[];
-  enemyCoordinates: Vector[] = [];
-  private shipGenerator: IShipGenerator;
+  enemyCoordinates: Vector[];
 
-  constructor({ id, matrixShape, ships, shipGenerator }: BattlefieldOptions) {
+  constructor({ id, matrixShape, ships }: BattlefieldOptions) {
     this.id = id;
     this.matrixShape = matrixShape;
     this.shipMeta = ships;
-    this.shipGenerator = shipGenerator;
+    this.ships = [];
+    this.enemyCoordinates = [];
+    this.createShips();
+  }
+
+  public reset(): void {
+    this.ships = [];
+    this.enemyCoordinates = [];
+    this.createShips();
   }
 
   public get allPositionsInMatrixShape() {
@@ -65,7 +71,6 @@ export class Battlefield implements IBattlefield {
   }
 
   public createShips() {
-    this.ships = [];
     this.shipMeta.forEach((option) => {
       const sinkInOne = option.sinkInOne == undefined ? true : option.sinkInOne;
       this.ships.push(this.createShip(option.length, sinkInOne));
@@ -92,7 +97,7 @@ export class Battlefield implements IBattlefield {
       );
       if (lengthOfShip == 1) {
         return new Ship({
-          vectors: [head],
+          parts: [new ShipPart(head)],
           sinkInOneHit: sinkInOne,
         });
       }
@@ -109,7 +114,9 @@ export class Battlefield implements IBattlefield {
 
       if (validBodies.length != 0)
         return new Ship({
-          vectors: [head, ...Marray.randomChoice(validBodies)],
+          parts: [head, ...Marray.randomChoice(validBodies)].map(
+            (x) => new ShipPart(x)
+          ),
           sinkInOneHit: sinkInOne,
         });
       tries = tries + 1;

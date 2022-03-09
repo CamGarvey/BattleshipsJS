@@ -6,8 +6,9 @@ export interface IPlayerManager {
   players: IPlayer[];
   shooter: IPlayer;
   target: IPlayer;
-  init(): void;
+  reset(): void;
   addPlayer(player: IPlayer): void;
   endTurn(response: ShootResponse): BattleshipsState;
   displayMessage(message: string): void;
+  promptPlayAgain(): Promise<boolean>;
 }

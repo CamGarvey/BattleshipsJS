@@ -1,9 +1,9 @@
-import { ShipPart } from '../models/ship-part';
 import { Vector } from '../models/vector';
+import { IShipPart } from './ship-parts.interface';
 
 export interface IShip {
   sunk: boolean;
-  parts: ShipPart[];
+  parts: IShipPart[];
   checkHit: (vector: Vector) => number;
   allVectors: () => Vector[];
 }

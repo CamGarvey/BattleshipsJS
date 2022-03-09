@@ -7,6 +7,7 @@ export interface IBattlefield {
   matrixShape: Vector;
   allPositionsInMatrixShape: Vector[];
   enemyCoordinates: Vector[];
+  reset(): void;
   createShips: () => void;
   remainingShips: () => IShip[];
 }

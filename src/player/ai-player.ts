@@ -3,11 +3,14 @@ import { ShootResponse } from '../models/shoot-response';
 import { Vector } from '../models/vector';
 import { IBattlefield } from '../battlefield/battlefield.interface';
 import { IPlayer } from './player.interface';
+import { ShootMessage } from '../models/shoot-message';
+import { IMissileLauncher } from '../missile-launcher/missile-launcher.interface';
 
 interface AIPlayerOptions {
   id: string;
   numberOfShips?: number;
   battlefield: IBattlefield;
+  missileLauncher: IMissileLauncher;
 }
 
 class Shot {
@@ -15,17 +18,42 @@ class Shot {
 }
 
 export class AIPlayer implements IPlayer {
-  id: string;
-  isDead: boolean;
-  battlefield: IBattlefield;
-  previousCoordinates: Vector[];
-  shots: Shot[];
+  private _id: string;
+  private _isDead: boolean;
+  private _battlefield: IBattlefield;
+  private _missileLauncher: IMissileLauncher;
+  private previousCoordinates: Vector[];
+  private shots: Shot[];
 
-  constructor({ id, battlefield }: AIPlayerOptions) {
-    this.id = id;
-    this.battlefield = battlefield;
+  constructor({ id, battlefield, missileLauncher }: AIPlayerOptions) {
+    this._id = id;
+    this._battlefield = battlefield;
+    this._missileLauncher = missileLauncher;
     this.shots = [];
     this.previousCoordinates = [];
+  }
+
+  public reset(): void {
+    this.battlefield.reset();
+    this.shots = [];
+    this.previousCoordinates = [];
+    this._isDead = false;
+  }
+
+  public get id() {
+    return this._id;
+  }
+
+  public get isDead() {
+    return this._isDead;
+  }
+
+  public get battlefield() {
+    return this._battlefield;
+  }
+
+  public get missileLauncher() {
+    return this._missileLauncher;
   }
 
   private find0DistancePath(battlefield: IBattlefield): Vector[] {
@@ -120,7 +148,9 @@ export class AIPlayer implements IPlayer {
   }
 
   handleTargetedResponse(response: ShootResponse): void {
-    return;
+    if (response.message() == ShootMessage.Hit) {
+      this._isDead = this.battlefield.remainingShips().length == 0;
+    }
   }
 
   handleShooterResponse(response: ShootResponse): void {

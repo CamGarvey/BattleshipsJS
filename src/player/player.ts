@@ -1,37 +1,60 @@
-import { Marray, MatrixHelper } from '../util';
-import { BattleshipsError } from '../models/errors';
-import { Ship } from '../ship/ship';
 import { ShootMessage } from '../models/shoot-message';
 import { ShootResponse } from '../models/shoot-response';
 import { Vector } from '../models/vector';
 import { IBattlefield } from '../battlefield/battlefield.interface';
 import { IPlayer } from './player.interface';
 import { IDisplay } from '../display/display.interface';
+import { IMissileLauncher } from '../missile-launcher/missile-launcher.interface';
 
 interface PlayerOptions {
   id: string;
   numberOfShips?: number;
   display: IDisplay;
   battlefield: IBattlefield;
+  missileLauncher: IMissileLauncher;
 }
 
 export class Player implements IPlayer {
-  id: string;
-  _isDead: boolean;
+  private _id: string;
+  private _isDead: boolean;
   private previousCoordinates: Vector[];
-  public battlefield: IBattlefield;
-  private display: IDisplay;
+  private _battlefield: IBattlefield;
+  private _display: IDisplay;
+  private _missileLauncher: IMissileLauncher;
 
-  constructor({ id, battlefield, display }: PlayerOptions) {
-    this.id = id;
-    this.battlefield = battlefield;
-    this.display = display;
+  constructor({ id, battlefield, missileLauncher, display }: PlayerOptions) {
+    this._id = id;
+    this._battlefield = battlefield;
+    this._missileLauncher = missileLauncher;
+    this._display = display;
     this.previousCoordinates = [];
     this._isDead = false;
   }
 
+  public reset(): void {
+    this.battlefield.reset();
+    this.previousCoordinates = [];
+    this._isDead = false;
+  }
+
+  public get id() {
+    return this._id;
+  }
+
   public get isDead() {
     return this._isDead;
+  }
+
+  public get battlefield() {
+    return this._battlefield;
+  }
+
+  public get missileLauncher() {
+    return this._missileLauncher;
+  }
+
+  public get display() {
+    return this._display;
   }
 
   async promptCoordinates(battlefield: IBattlefield) {
@@ -69,7 +92,7 @@ export class Player implements IPlayer {
     );
   }
 
-  public promptPlayAgain() {
+  public promptPlayAgain(): Promise<boolean> {
     return this.display.promptBool('Play Again?');
   }
 }
