@@ -6,7 +6,8 @@ import { IBattlefield } from '../battlefield/battlefield.interface';
 import { IDisplay } from './display.interface';
 
 export enum ConsoleResolution {
-  Small = 1,
+  Tiny = 1,
+  Small = 2,
   Medium = 3,
   Large = 5,
   XLarge = 7,
@@ -195,8 +196,6 @@ export class ConsoleDisplay implements IDisplay {
         ? targetedBattlefield
         : ownBattlefield;
 
-    this.vPadding();
-
     const gap = this.gaps ? targetedBattlefield.matrixShape.col : 0;
 
     const lengthOfTargetedBattleField =
@@ -239,6 +238,8 @@ export class ConsoleDisplay implements IDisplay {
         Math.ceil(lengthOfOwnBattleField / 2 - ownBattlefield.id.length / 2),
         { draw: false }
       );
+
+    this.vPadding();
 
     console.log(
       `${targetBattlefieldHeading}${spaceBetweenBattlefieldsDrawn}${ownBattlefieldHeading}`
@@ -294,10 +295,10 @@ export class ConsoleDisplay implements IDisplay {
 
   private get xResolution() {
     if (this._xResolution) return this._xResolution;
-    if (this.vResolution == 1) {
-      this._xResolution = 1;
-      return this._xResolution;
-    }
+    // if (this.vResolution == 1) {
+    //   this._xResolution = 1;
+    //   return this._xResolution;
+    // }
     let res = Math.ceil(this.vResolution * 2);
     res += res % 2 == 0 ? 1 : 0;
     this._xResolution = res;

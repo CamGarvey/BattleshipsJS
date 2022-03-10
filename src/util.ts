@@ -86,6 +86,8 @@ export class MatrixHelper {
     vector: Vector,
     size = 1
   ): Vector[][] {
+    console.log({ matrixShape, vector, size });
+
     let top: Vector[] = this.findTopNeighbours(vector, size);
     let bottom: Vector[] = this.findBottomNeighbours(matrixShape, vector, size);
     let left: Vector[] = this.findLeftNeighbours(vector, size);

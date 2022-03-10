@@ -11,18 +11,26 @@ const player1 = new Player({
   id: 'Cam',
   battlefield: new Battlefield({
     id: "Cam's Field",
-    matrixShape: new Vector(3, 3),
+    matrixShape: new Vector(4, 4),
     ships: [
       {
         length: 2,
         sinkInOne: false,
       },
+      // {
+      //   length: 3,
+      //   sinkInOne: false,
+      // },
+      // {
+      //   length: 4,
+      //   sinkInOne: false,
+      // },
     ],
   }),
   missileLauncher: new StandardMissileLauncher(),
   display: new ConsoleDisplay({
     gaps: false,
-    resolution: ConsoleResolution.Medium,
+    resolution: ConsoleResolution.Small,
   }),
 });
 
@@ -33,7 +41,15 @@ const ai = new AIPlayer({
     matrixShape: new Vector(8, 8),
     ships: [
       {
-        length: 6,
+        length: 2,
+        sinkInOne: false,
+      },
+      {
+        length: 3,
+        sinkInOne: false,
+      },
+      {
+        length: 4,
         sinkInOne: false,
       },
     ],

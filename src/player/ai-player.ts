@@ -56,51 +56,55 @@ export class AIPlayer implements IPlayer {
     return this._missileLauncher;
   }
 
-  private find0DistancePath(battlefield: IBattlefield): Vector[] {
-    const distance0Shots = this.shots
-      .filter((shot) => shot.distance == 0)
-      .sort((a, b) => a.distance - b.distance);
+  /**
+   * Find the next target vector in a row of hit vectors
+   * @param battlefield
+   * @returns
+   */
+  private findHitPath(battlefield: IBattlefield): Vector[] {
+    // Find all shots that have distance 0 aka hit
+    const hits = this.shots.filter((shot) => shot.distance == 0);
 
-    if (distance0Shots.length < 2) {
+    // Can only get the hit path if there 2 or more hits
+    if (hits.length < 2) {
       return [];
     }
-    const isHorizontal =
-      this.shots[0].coordinate.col == this.shots[1].coordinate.col;
+
+    // Wrk out if the path is vertical or horizontal by seeing if the rows are the same
+    const isHorizontal = hits[0].coordinate.row == hits[1].coordinate.row;
 
     const potentialCoords: Vector[] = [];
     if (isHorizontal) {
-      const allShotsOnRow = distance0Shots.sort(
+      // Sort the hit by col
+      const hitsOnRow = hits.sort(
         (a, b) => a.coordinate.col - b.coordinate.col
       );
-      const left = allShotsOnRow[0].coordinate.col - 1;
-      const right = allShotsOnRow[allShotsOnRow.length - 1].coordinate.col + 1;
+      const left = hitsOnRow[0].coordinate.col - 1;
+      const right = hitsOnRow[hitsOnRow.length - 1].coordinate.col + 1;
 
       if (left >= 0) {
-        potentialCoords.push(
-          new Vector(left, distance0Shots[0].coordinate.row)
-        );
+        potentialCoords.push(new Vector(left, hits[0].coordinate.row));
       }
       if (right < battlefield.matrixShape.col) {
-        potentialCoords.push(
-          new Vector(right, distance0Shots[0].coordinate.row)
-        );
+        potentialCoords.push(new Vector(right, hits[0].coordinate.row));
       }
     } else {
-      const allShotsOnCol = distance0Shots.sort(
+      // Sort the hit by row
+      const allHitsOnCol = hits.sort(
         (a, b) => a.coordinate.row - b.coordinate.row
       );
-      const top = allShotsOnCol[0].coordinate.row - 1;
-      const bottom = allShotsOnCol[allShotsOnCol.length - 1].coordinate.row + 1;
+      const top = allHitsOnCol[0].coordinate.row - 1;
+      const bottom = allHitsOnCol[allHitsOnCol.length - 1].coordinate.row + 1;
 
       if (top >= 0) {
-        potentialCoords.push(new Vector(distance0Shots[0].coordinate.col, top));
+        potentialCoords.push(new Vector(hits[0].coordinate.col, top));
       }
       if (bottom < battlefield.matrixShape.row) {
-        potentialCoords.push(
-          new Vector(distance0Shots[0].coordinate.col, bottom)
-        );
+        potentialCoords.push(new Vector(hits[0].coordinate.col, bottom));
       }
     }
+    console.log(potentialCoords);
+
     return potentialCoords.filter(
       (c) => !this.shots.find((shot) => shot.coordinate.equals(c))
     );
@@ -108,25 +112,29 @@ export class AIPlayer implements IPlayer {
 
   promptCoordinates(battlefield: IBattlefield): Promise<Vector> {
     return new Promise((resolve, reject) => {
-      setTimeout(() => {
+      const pickCoordinates = () => {
+        // If shots is 0 then it's the beginning of the game or they have just sunk a ship
         if (this.shots.length == 0) {
+          // Pick a random coordinate that hasn't been hit
           const coord = Marray.randomChoice(
             battlefield.allPositionsInMatrixShape.filter(
-              (n) => !this.previousCoordinates.find((pc) => pc.equals(n))
+              (n) =>
+                !this.battlefield.enemyCoordinates.find((pc) => pc.equals(n))
             )
           );
           this.previousCoordinates.push(coord);
           resolve(coord);
         } else {
           // Work out a good coord to shoot at
-          const distance0Path = this.find0DistancePath(battlefield);
-          console.log(distance0Path);
+          const hitPath = this.findHitPath(battlefield);
 
-          if (distance0Path?.length != 0) {
-            const coord = Marray.randomChoice(distance0Path);
+          if (hitPath.length != 0) {
+            const coord = Marray.randomChoice(hitPath);
             this.previousCoordinates.push(coord);
             resolve(coord);
           } else {
+
+            // Sort shots bby distance so the first index is the closest
             this.shots.sort((a, b) => a.distance - b.distance);
             const neighbours = MatrixHelper.findNeighbours(
               battlefield.matrixShape,
@@ -138,11 +146,16 @@ export class AIPlayer implements IPlayer {
             const validNeighbours = furthestNeighbour.filter(
               (n) => !this.previousCoordinates.find((pc) => pc.equals(n))
             );
+            console.log({ furthestNeighbour, validNeighbours });
             const coord = Marray.randomChoice(validNeighbours);
             this.previousCoordinates.push(coord);
             resolve(coord);
           }
         }
+      };
+      // Wrap in a timeout to make it feel more human
+      setTimeout(() => {
+        pickCoordinates();
       }, 500);
     });
   }

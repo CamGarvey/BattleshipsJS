@@ -1,8 +1,5 @@
 import { IBattlefield } from '../battlefield/battlefield.interface';
-import { GameMode } from '../models/game-mode';
-import { ShootMessage } from '../models/shoot-message';
 import { Vector } from '../models/vector';
-import { IShip } from '../ship/ship.interface';
 
 export interface IDisplay {
   displayBattlefields(
